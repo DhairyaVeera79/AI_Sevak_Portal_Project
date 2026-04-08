@@ -434,6 +434,25 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 - Migration command attempted and failed with expected Prisma `P1012` due missing `DATABASE_URL` (documented blocker).
 - Existing local quality checks remain green from previous milestone.
 
+## 2026-04-07 — Supabase Readiness Package (DB Unblock Prep)
+
+### What was implemented
+- Updated API env template for Supabase-ready usage:
+  - File: `services/api/.env.example`
+  - Added explicit Supabase direct URI guidance with `sslmode=require`
+- Added dedicated runbook for migration/seed against Supabase:
+  - File: `docs/SUPABASE_SETUP.md`
+  - Covers env setup, prisma generate, migration, seed, validation, and troubleshooting
+- Linked Supabase runbook from monorepo README:
+  - File: `README.md`
+
+### Why it was implemented this way
+- Removes ambiguity around DB setup so migration/seed can run immediately when Supabase credentials are provided.
+- Keeps preparation explicit without weakening mock-first local behavior.
+
+### Validation done
+- Documentation and templates updated; no runtime code-path changes.
+
 ## 6) Architecture Snapshot (Current)
 
 ### Frontend
@@ -502,6 +521,7 @@ This file must be updated in the same PR/commit as code changes.
 - Presentation narrative (source): `docs/AI_Sevak_Portal_Presentaion.md`
 - Build memory (this file): `docs/PROJECT_BUILD_MEMORY.md`
 - Fresh chat bootstrap prompt: `docs/NEXT_CHAT_HANDOFF_PROMPT.md`
+- Supabase setup runbook: `docs/SUPABASE_SETUP.md`
 - Monorepo overview: `README.md`
 
 ### Source/Context References
@@ -552,5 +572,6 @@ This file must be updated in the same PR/commit as code changes.
 2. `docs/AI_Sevak_Portal.md` (scope and implementation intent)
 3. `docs/AI_Sevak_Portal_Presentaion.md` (narrative and roadmap)
 4. `README.md` (repo layout and run strategy)
-5. `docs/NEXT_CHAT_HANDOFF_PROMPT.md` (execution-ready restart prompt)
-6. `references/*` (deeper source context)
+5. `docs/SUPABASE_SETUP.md` (DB setup and migration/seed execution guide)
+6. `docs/NEXT_CHAT_HANDOFF_PROMPT.md` (execution-ready restart prompt)
+7. `references/*` (deeper source context)

@@ -42,3 +42,6 @@ This repository is structured as a **single monorepo** to move fast on documenta
 	- detailed implementation logs,
 	- architecture/component mapping,
 	- AI handoff context.
+
+## Database Quickstart (Supabase)
+- Setup guide: [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md)
