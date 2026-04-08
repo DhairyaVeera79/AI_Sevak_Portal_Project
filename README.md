@@ -53,3 +53,4 @@ This repository is structured as a **single monorepo** to move fast on documenta
 ## Deployment Guides
 - Runbook: [infra/DEPLOYMENT_RUNBOOK.md](infra/DEPLOYMENT_RUNBOOK.md)
 - Render blueprint: [render.yaml](render.yaml)
+- Execution checklist (today): [infra/DEPLOYMENT_EXECUTION_TODAY.md](infra/DEPLOYMENT_EXECUTION_TODAY.md)

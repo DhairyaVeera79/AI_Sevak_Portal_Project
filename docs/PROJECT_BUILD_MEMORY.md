@@ -540,6 +540,20 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 ### Validation done
 - Structural/config changes only; local lint/build/test validation run after scaffolding.
 
+## 2026-04-08 — Deployment Execution Checklist Added
+
+### What was implemented
+- Added click-by-click deployment playbook for immediate execution:
+  - `infra/DEPLOYMENT_EXECUTION_TODAY.md`
+  - includes Render blueprint steps, Vercel root-directory setup for both apps, required env vars, smoke checks, and URL handback format.
+- Linked checklist from root `README.md`.
+
+### Why it was implemented this way
+- Enables fast operator-driven deployment without ambiguity while preserving current architecture choices.
+
+### Validation done
+- Documentation update only.
+
 ## 6) Architecture Snapshot (Current)
 
 ### Frontend
@@ -612,6 +626,7 @@ This file must be updated in the same PR/commit as code changes.
 - Environment matrix: `docs/ENVIRONMENT_MATRIX.md`
 - Supabase access handoff: `docs/SUPABASE_ACCESS_STEPS.md`
 - Deployment runbook: `infra/DEPLOYMENT_RUNBOOK.md`
+- Deployment execution checklist: `infra/DEPLOYMENT_EXECUTION_TODAY.md`
 - Monorepo overview: `README.md`
 
 ### Source/Context References
