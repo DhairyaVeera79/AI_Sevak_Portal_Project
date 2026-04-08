@@ -597,18 +597,10 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 - Hardened API bind behavior for local hosting:
   - `services/api/src/main.ts`
   - API now binds to `API_BIND_HOST` with secure default `127.0.0.1`.
-- Wired portal requests to send optional public tunnel key header:
-  - `apps/portal-web/src/lib/api-client.ts`
-  - `apps/portal-web/src/app/login/page.tsx`
-  - `apps/portal-web/src/components/portal-shell.tsx`
 - Enabled local tunnel hardening in runtime env (`services/api/.env`, local only):
   - `PUBLIC_TUNNEL_API_KEY` set
   - `PUBLIC_RATE_LIMIT_MAX` and `PUBLIC_RATE_WINDOW_MS` set
   - `API_BIND_HOST=127.0.0.1` set
-- Updated env/template and deployment docs for security controls:
-  - `services/api/.env.example`
-  - `infra/DEPLOYMENT_EXECUTION_TODAY.md`
-  - `infra/LOCAL_PC_API_HOSTING.md`
 - Restarted PM2 API process with updated env.
 
 ### Exposure audit results

@@ -48,13 +48,8 @@ npm install -g pm2
        - `DATABASE_URL`
        - `DIRECT_URL`
        - `DATA_SOURCE_MODE=mock`
-       - `PUBLIC_TUNNEL_API_KEY=<long-random-secret>`
-       - `CORS_ALLOWED_ORIGINS` (optional but recommended)
 
-3. If portal is deployed, set in portal env:
-   - `NEXT_PUBLIC_PUBLIC_TUNNEL_KEY=<same-secret>`
-
-4. Build and start API with PM2:
+3. Build and start API with PM2:
 
 ```bash
 cd services/api
@@ -64,13 +59,13 @@ pm2 start "npm run start:prod" --name ai-sevak-portal-api
 pm2 save
 ```
 
-5. Start public tunnel to local API (`3000`):
+4. Start public tunnel to local API (`3000`):
 
 ```bash
 cloudflared tunnel --url http://localhost:3000
 ```
 
-6. Copy the generated public URL from tunnel output (example: `https://<random>.trycloudflare.com`).
+5. Copy the generated public URL from tunnel output (example: `https://<random>.trycloudflare.com`).
 
 Notes:
 - Keep terminal open while tunnel is running.

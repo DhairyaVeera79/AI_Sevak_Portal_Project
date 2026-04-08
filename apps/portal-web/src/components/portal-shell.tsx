@@ -67,7 +67,6 @@ export function PortalShell({ title, subtitle, children }: PortalShellProps) {
   const handleSignOut = async () => {
     const sessionToken = readCookie("ai_sevak_session");
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3002";
-    const publicTunnelKey = process.env.NEXT_PUBLIC_PUBLIC_TUNNEL_KEY;
 
     if (sessionToken) {
       try {
@@ -75,11 +74,6 @@ export function PortalShell({ title, subtitle, children }: PortalShellProps) {
           method: "POST",
           headers: {
             "x-session-token": sessionToken,
-            ...(publicTunnelKey
-              ? {
-                  "x-public-tunnel-key": publicTunnelKey,
-                }
-              : {}),
           },
         });
       } catch {

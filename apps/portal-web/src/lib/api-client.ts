@@ -51,7 +51,6 @@ export type ExpenseItem = {
 };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3002';
-const PUBLIC_TUNNEL_KEY = process.env.NEXT_PUBLIC_PUBLIC_TUNNEL_KEY;
 
 async function fetchJson<T>(path: string): Promise<T | null> {
   try {
@@ -60,18 +59,11 @@ async function fetchJson<T>(path: string): Promise<T | null> {
 
     const response = await fetch(`${API_BASE_URL}${path}`, {
       cache: 'no-store',
-      headers: {
-        ...(sessionToken
-          ? {
-              'x-session-token': sessionToken,
-            }
-          : {}),
-        ...(PUBLIC_TUNNEL_KEY
-          ? {
-              'x-public-tunnel-key': PUBLIC_TUNNEL_KEY,
-            }
-          : {}),
-      },
+      headers: sessionToken
+        ? {
+            'x-session-token': sessionToken,
+          }
+        : undefined,
     });
     if (!response.ok) {
       return null;
@@ -100,11 +92,6 @@ async function mutateJson<T>(
         ...(sessionToken
           ? {
               'x-session-token': sessionToken,
-            }
-          : {}),
-        ...(PUBLIC_TUNNEL_KEY
-          ? {
-              'x-public-tunnel-key': PUBLIC_TUNNEL_KEY,
             }
           : {}),
       },

@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3002";
-const PUBLIC_TUNNEL_KEY = process.env.NEXT_PUBLIC_PUBLIC_TUNNEL_KEY;
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,11 +27,6 @@ export default function LoginPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(PUBLIC_TUNNEL_KEY
-            ? {
-                "x-public-tunnel-key": PUBLIC_TUNNEL_KEY,
-              }
-            : {}),
         },
         body: JSON.stringify({ giId: userId, password }),
       });
