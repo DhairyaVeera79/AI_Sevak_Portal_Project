@@ -21,6 +21,17 @@ Set values in `services/api/.env`:
 DATA_SOURCE_MODE=mock
 DATABASE_URL="<your-supabase-pooled-url>"
 DIRECT_URL="<your-supabase-direct-url>"
+PUBLIC_TUNNEL_API_KEY="<generate-a-long-random-secret>"
+# Optional (recommended when portal deployed):
+# CORS_ALLOWED_ORIGINS="https://<portal-vercel-domain>"
+PUBLIC_RATE_WINDOW_MS=60000
+PUBLIC_RATE_LIMIT_MAX=120
+```
+
+Set value in `apps/portal-web/.env` (or Vercel env vars):
+
+```dotenv
+NEXT_PUBLIC_PUBLIC_TUNNEL_KEY="<same-secret-as-PUBLIC_TUNNEL_API_KEY>"
 ```
 
 ## 3) Build and run API with PM2
@@ -71,3 +82,9 @@ pm2 delete ai-sevak-portal-api
 - If your PC sleeps/shuts down, API and tunnel go offline.
 - `trycloudflare.com` URL can change between sessions.
 - Good for immediate demo/testing; migrate to always-on host for stable sharing.
+
+## Security defaults now enabled in API
+
+- Optional API key gate for all non-health routes when `PUBLIC_TUNNEL_API_KEY` is set.
+- Basic in-memory rate limiting.
+- Configurable CORS via `CORS_ALLOWED_ORIGINS`.
