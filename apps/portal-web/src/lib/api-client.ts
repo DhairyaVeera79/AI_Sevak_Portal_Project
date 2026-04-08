@@ -29,6 +29,17 @@ export type ImpactStory = {
   summary: string;
 };
 
+export type LogItem = {
+  id: string;
+  sevaId: string;
+  actorGiId: string;
+  title: string;
+  summary: string;
+  stage: 'draft' | 'moderation' | 'reviewed';
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type ExpenseItem = {
   id: string;
   sevaId: string;
@@ -59,6 +70,39 @@ async function fetchJson<T>(path: string): Promise<T | null> {
     }
     const payload = (await response.json()) as T;
     return payload;
+  } catch {
+    return null;
+  }
+}
+
+async function mutateJson<T>(
+  path: string,
+  method: 'PATCH' | 'POST',
+  body?: object,
+): Promise<T | null> {
+  try {
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get('ai_sevak_session')?.value;
+
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      method,
+      cache: 'no-store',
+      headers: {
+        'content-type': 'application/json',
+        ...(sessionToken
+          ? {
+              'x-session-token': sessionToken,
+            }
+          : {}),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return (await response.json()) as T;
   } catch {
     return null;
   }
@@ -112,6 +156,46 @@ export async function getImpactStories(): Promise<ImpactStory[]> {
     },
   ];
   return (await fetchJson<ImpactStory[]>('/v1/impact-stories')) ?? fallback;
+}
+
+export async function getLogs(stage?: LogItem['stage']): Promise<LogItem[]> {
+  const fallback: LogItem[] = [
+    {
+      id: 'LOG-101',
+      sevaId: 'SEVA-101',
+      actorGiId: 'C4-DEMO',
+      title: 'Learning Kit Distribution Completed',
+      summary:
+        'Volunteers completed doorstep distribution and captured attendance evidence for 75 students.',
+      stage: 'moderation',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: 'LOG-102',
+      sevaId: 'SEVA-102',
+      actorGiId: 'C3-DEMO',
+      title: 'Healthcare Camp Follow-up',
+      summary:
+        'Post-camp medicine follow-up calls completed with documented beneficiary response summaries.',
+      stage: 'draft',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ];
+
+  const query = stage ? `?stage=${stage}` : '';
+  return (await fetchJson<LogItem[]>(`/v1/logs${query}`)) ?? fallback;
+}
+
+export async function updateLogStage(
+  id: string,
+  stage: LogItem['stage'],
+): Promise<boolean> {
+  const result = await mutateJson<{ id: string }>(`/v1/logs/${id}/stage`, 'PATCH', {
+    stage,
+  });
+  return Boolean(result?.id);
 }
 
 export async function getExpenses(): Promise<ExpenseItem[]> {

@@ -5,7 +5,7 @@ import {
   Optional,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ExpenseStatus, RoleLevel } from '@prisma/client';
+import { ExpenseStatus, RoleLevel, StoryStage } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { HealthPayload, PORTAL_DATA_SOURCE } from './data/portal-data-source';
 import type { PortalDataSource } from './data/portal-data-source';
@@ -35,6 +35,18 @@ export interface ExpenseRecord {
   amount: number;
   status: ExpenseStatus;
   attachmentUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LogRecord {
+  id: string;
+  sevaId: string;
+  userId?: string;
+  actorGiId: string;
+  title: string;
+  summary: string;
+  stage: 'draft' | 'moderation' | 'reviewed';
   createdAt: string;
   updatedAt: string;
 }
@@ -85,6 +97,33 @@ export class AppService {
       category: 'Travel reimbursement',
       amount: 1200,
       status: ExpenseStatus.SUBMITTED,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ];
+
+  private readonly mockLogs: LogRecord[] = [
+    {
+      id: 'LOG-101',
+      sevaId: 'SEVA-101',
+      userId: undefined,
+      actorGiId: 'C4-DEMO',
+      title: 'Learning Kit Distribution Completed',
+      summary:
+        'Volunteers completed doorstep distribution and captured attendance evidence for 75 students.',
+      stage: 'moderation',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: 'LOG-102',
+      sevaId: 'SEVA-102',
+      userId: undefined,
+      actorGiId: 'C3-DEMO',
+      title: 'Healthcare Camp Follow-up',
+      summary:
+        'Post-camp medicine follow-up calls completed with documented beneficiary response summaries.',
+      stage: 'draft',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
@@ -252,6 +291,82 @@ export class AppService {
     }
 
     return this.updateMockExpenseStatus(user, expenseId, status);
+  }
+
+  async listLogs(user: SessionUser, stage?: LogRecord['stage']) {
+    if (this.hasDatabaseConnection()) {
+      try {
+        const dbStage = stage ? this.toDbStoryStage(stage) : undefined;
+
+        const whereClause = {
+          ...(dbStage ? { stage: dbStage } : {}),
+          ...(roleWeight[user.role] >= roleWeight.C3 || !user.userId
+            ? {}
+            : { userId: user.userId }),
+        };
+
+        const rows = await this.prismaService!.logEntry.findMany({
+          where: whereClause,
+          include: { user: true },
+          orderBy: { createdAt: 'desc' },
+          take: 100,
+        });
+
+        return rows.map((row) => ({
+          id: row.id,
+          sevaId: row.sevaId,
+          userId: row.userId,
+          actorGiId: row.user.giId,
+          title: row.title,
+          summary: row.summary,
+          stage: this.fromDbStoryStage(row.stage),
+          createdAt: row.createdAt.toISOString(),
+          updatedAt: row.updatedAt.toISOString(),
+        }));
+      } catch {
+        return this.filterMockLogsByRole(user, stage);
+      }
+    }
+
+    return this.filterMockLogsByRole(user, stage);
+  }
+
+  async updateLogStage(
+    user: SessionUser,
+    logId: string,
+    stage: LogRecord['stage'],
+  ) {
+    const dbStage = this.toDbStoryStage(stage);
+
+    if (this.hasDatabaseConnection()) {
+      try {
+        const updated = await this.prismaService!.logEntry.update({
+          where: { id: logId },
+          data: { stage: dbStage },
+        });
+
+        await this.createAuditEventIfPossible({
+          actorUserId: user.userId,
+          actorGiId: user.giId,
+          action: 'log.stage.update',
+          status: 'success',
+          target: logId,
+          metadataJson: {
+            newStage: updated.stage,
+          },
+        });
+
+        return {
+          id: updated.id,
+          stage: this.fromDbStoryStage(updated.stage),
+          updatedAt: updated.updatedAt.toISOString(),
+        };
+      } catch {
+        return this.updateMockLogStage(user, logId, stage);
+      }
+    }
+
+    return this.updateMockLogStage(user, logId, stage);
   }
 
   async login(giId: string, password: string) {
@@ -606,6 +721,76 @@ export class AppService {
       status: updated.status,
       updatedAt: updated.updatedAt,
     };
+  }
+
+  private filterMockLogsByRole(user: SessionUser, stage?: LogRecord['stage']) {
+    const visibleLogs =
+      roleWeight[user.role] >= roleWeight.C3
+        ? this.mockLogs
+        : this.mockLogs.filter((entry) => entry.actorGiId === user.giId);
+
+    if (!stage) {
+      return visibleLogs;
+    }
+
+    return visibleLogs.filter((entry) => entry.stage === stage);
+  }
+
+  private updateMockLogStage(
+    user: SessionUser,
+    logId: string,
+    stage: LogRecord['stage'],
+  ) {
+    const index = this.mockLogs.findIndex((item) => item.id === logId);
+    if (index < 0) {
+      throw new UnauthorizedException('Log entry not found');
+    }
+
+    const updated = {
+      ...this.mockLogs[index],
+      stage,
+      updatedAt: new Date().toISOString(),
+    };
+
+    this.mockLogs[index] = updated;
+
+    void this.createAuditEventIfPossible({
+      actorUserId: user.userId,
+      actorGiId: user.giId,
+      action: 'log.stage.update',
+      status: 'success',
+      target: logId,
+      metadataJson: {
+        newStage: stage,
+        source: 'mock',
+      },
+    });
+
+    return {
+      id: updated.id,
+      stage: updated.stage,
+      updatedAt: updated.updatedAt,
+    };
+  }
+
+  private toDbStoryStage(stage: LogRecord['stage']) {
+    if (stage === 'draft') {
+      return StoryStage.DRAFT;
+    }
+    if (stage === 'reviewed') {
+      return StoryStage.REVIEWED;
+    }
+    return StoryStage.MODERATION;
+  }
+
+  private fromDbStoryStage(stage: StoryStage): LogRecord['stage'] {
+    if (stage === StoryStage.DRAFT) {
+      return 'draft';
+    }
+    if (stage === StoryStage.REVIEWED) {
+      return 'reviewed';
+    }
+    return 'moderation';
   }
 
   private parseSessionToken(

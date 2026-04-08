@@ -45,6 +45,50 @@ export class AppController {
     return this.appService.getImpactStories();
   }
 
+  @Get('v1/logs')
+  async getLogs(
+    @Headers('x-session-token') sessionToken: string | undefined,
+    @Query('stage') stage?: string,
+  ) {
+    const user = await this.appService.requireRole(sessionToken, 'C4');
+
+    const normalizedStage = stage?.toLowerCase();
+    const allowedStages = new Set(['draft', 'moderation', 'reviewed']);
+    if (normalizedStage && !allowedStages.has(normalizedStage)) {
+      throw new BadRequestException(
+        'stage must be one of draft, moderation, reviewed',
+      );
+    }
+
+    return this.appService.listLogs(
+      user,
+      normalizedStage as 'draft' | 'moderation' | 'reviewed' | undefined,
+    );
+  }
+
+  @Patch('v1/logs/:id/stage')
+  async updateLogStage(
+    @Headers('x-session-token') sessionToken: string | undefined,
+    @Param('id') id: string,
+    @Body() body: { stage?: string },
+  ) {
+    const user = await this.appService.requireRole(sessionToken, 'C2');
+
+    const normalizedStage = body.stage?.toLowerCase();
+    const allowedStages = new Set(['draft', 'moderation', 'reviewed']);
+    if (!normalizedStage || !allowedStages.has(normalizedStage)) {
+      throw new BadRequestException(
+        'stage must be one of draft, moderation, reviewed',
+      );
+    }
+
+    return this.appService.updateLogStage(
+      user,
+      id,
+      normalizedStage as 'draft' | 'moderation' | 'reviewed',
+    );
+  }
+
   @Get('v1/expenses')
   async getExpenses(
     @Headers('x-session-token') sessionToken: string | undefined,
@@ -176,7 +220,7 @@ export class AppController {
   async getModerationQueue(
     @Headers('x-session-token') sessionToken: string | undefined,
   ) {
-    await this.appService.requireRole(sessionToken, 'C2');
-    return this.appService.getModerationQueue();
+    const user = await this.appService.requireRole(sessionToken, 'C2');
+    return this.appService.listLogs(user, 'moderation');
   }
 }

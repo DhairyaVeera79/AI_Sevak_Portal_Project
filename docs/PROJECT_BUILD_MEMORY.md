@@ -67,9 +67,11 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 - [x] Add RBAC and audit-event module (core scaffolding)
 - [x] Add persistent session revocation/logout endpoint
 - [x] Add first domain module (`expenses`) with RBAC and audit hooks
+- [x] Add logs moderation module (`logs`) with RBAC and audit hooks
 
 ### E. Data and Integrations
 - [ ] Add DB migrations and seed data
+- [x] Add Prisma seed scaffolding (execution pending DB URL)
 - [ ] Add file upload strategy (logs/receipts)
 - [ ] Add notification queue baseline (optional for V1 demo)
 - [x] Design Get-Involved integration adapter (future-compatible)
@@ -375,6 +377,44 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 - `npm run test --workspace api -- --runInBand` ✅
 - `npm run test:e2e --workspace api` ✅
 
+## 2026-04-07 — Logs Moderation Module + Prisma Seed Scaffolding
+
+### What was implemented
+- Added logs moderation API endpoints with RBAC and validations:
+  - `GET /v1/logs` (C4+; optional stage filter)
+  - `PATCH /v1/logs/:id/stage` (C2+; moderation/review transitions)
+  - `GET /v1/admin/moderation-queue` now returns live moderation-stage log entries
+- Added logs domain methods in service:
+  - DB-backed list/update when `DATABASE_URL` is available
+  - safe mock in-memory fallback for no-DB mode
+  - audit-event entries for stage updates
+- Wired portal logs screen to live logs API:
+  - shows moderation queue and reviewed storytelling feed
+  - adds server-action stage transitions (`moderation`/`reviewed`)
+- Added deterministic Prisma seed scaffolding:
+  - script file: `services/api/prisma/seed.ts`
+  - package scripts: `prisma:seed` via `prisma db seed`
+  - seed data includes users, sevas, logs, expenses, and user-seva mappings
+
+### Files touched
+- `services/api/src/app.controller.ts`
+- `services/api/src/app.service.ts`
+- `apps/portal-web/src/lib/api-client.ts`
+- `apps/portal-web/src/app/logs/page.tsx`
+- `services/api/prisma/seed.ts`
+- `services/api/package.json`
+
+### Why it was implemented this way
+- Reuses the same proven domain pattern (RBAC + audit + DB/mock dual-mode) established in expenses.
+- Keeps V1 demo fully functional in mock mode while making moderation workflows and DB bootstrap production-ready.
+
+### Validation done
+- `npm run lint` ✅
+- `npm run build` ✅
+- `npm run test --workspace api -- --runInBand` ✅
+- `npm run test:e2e --workspace api` ✅
+- `npm run prisma:generate --workspace api` ✅
+
 ## 6) Architecture Snapshot (Current)
 
 ### Frontend
@@ -421,7 +461,7 @@ From repo root:
 
 ## 9) AI Handoff Block (Copy into any new chat)
 
-Use this repo as a monorepo with active modules in `apps/presentation-site`, `apps/portal-web`, and `services/api`. Current state: backend RBAC checks are enforced on key endpoints, DB-backed session strategy is scaffolded via Prisma `Session`, logout revocation endpoint is active, audit logging is scaffolded via Prisma `AuditEvent`, and the first domain module (`expenses`) is implemented with DB path + mock fallback and RBAC. Portal requests send session headers to API. Mock mode still works by default when `DATABASE_URL` is absent. Next priority is adding DB migrations/seeds and implementing the logs moderation domain module with similar RBAC/audit pattern, then deploy pipelines (Vercel + API host). Do not change timeline anchors: 31 Aug 2026 build deadline and 26 Sep 2026 offering milestone. Preserve SRMD/SRLC terminology and impact-storytelling requirements.
+Use this repo as a monorepo with active modules in `apps/presentation-site`, `apps/portal-web`, and `services/api`. Current state: backend RBAC checks are enforced on key endpoints, DB-backed session strategy is scaffolded via Prisma `Session`, logout revocation endpoint is active, audit logging is scaffolded via Prisma `AuditEvent`, and domain modules for both `expenses` and `logs moderation` are implemented with DB path + mock fallback. Portal requests send session headers to API and logs page supports moderation stage transitions via server actions. Prisma seed scaffolding is now added (`services/api/prisma/seed.ts` + `npm run prisma:seed --workspace api`), but migration/seed execution still depends on valid `DATABASE_URL`. Next priority is DB migration execution, then CI/deployment pipelines (Vercel + API host). Do not change timeline anchors: 31 Aug 2026 build deadline and 26 Sep 2026 offering milestone. Preserve SRMD/SRLC terminology and impact-storytelling requirements.
 
 ## 10) Update Protocol (Mandatory for Every Work Session)
 
@@ -473,6 +513,9 @@ This file must be updated in the same PR/commit as code changes.
 - Admin audit endpoint: `GET /v1/admin/audit-events`
 - Logout endpoint: `POST /v1/auth/logout`
 - Moderation queue endpoint: `GET /v1/admin/moderation-queue`
+- Logs endpoints:
+  - `GET /v1/logs`
+  - `PATCH /v1/logs/:id/stage`
 - Expenses endpoints:
   - `GET /v1/expenses`
   - `POST /v1/expenses`
