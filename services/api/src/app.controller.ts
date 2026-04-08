@@ -5,6 +5,7 @@ import {
   Get,
   Headers,
   Post,
+  Query,
   UnauthorizedException,
 } from '@nestjs/common';
 import { AppService } from './app.service';
@@ -19,24 +20,24 @@ export class AppController {
   }
 
   @Get('v1/sevas')
-  getSevas(@Headers('x-session-token') sessionToken: string | undefined) {
-    this.appService.requireRole(sessionToken, 'C4');
+  async getSevas(@Headers('x-session-token') sessionToken: string | undefined) {
+    await this.appService.requireRole(sessionToken, 'C4');
     return this.appService.getSevas();
   }
 
   @Get('v1/dashboard-metrics')
-  getDashboardMetrics(
+  async getDashboardMetrics(
     @Headers('x-session-token') sessionToken: string | undefined,
   ) {
-    this.appService.requireRole(sessionToken, 'C4');
+    await this.appService.requireRole(sessionToken, 'C4');
     return this.appService.getDashboardMetrics();
   }
 
   @Get('v1/impact-stories')
-  getImpactStories(
+  async getImpactStories(
     @Headers('x-session-token') sessionToken: string | undefined,
   ) {
-    this.appService.requireRole(sessionToken, 'C4');
+    await this.appService.requireRole(sessionToken, 'C4');
     return this.appService.getImpactStories();
   }
 
@@ -66,19 +67,33 @@ export class AppController {
   }
 
   @Get('v1/auth/me')
-  getCurrentUser(@Headers('x-session-token') sessionToken: string | undefined) {
-    const user = this.appService.requireRole(sessionToken, 'C4');
+  async getCurrentUser(
+    @Headers('x-session-token') sessionToken: string | undefined,
+  ) {
+    const user = await this.appService.requireRole(sessionToken, 'C4');
     return user;
   }
 
   @Get('v1/admin/rbac-status')
-  getRbacStatus(@Headers('x-session-token') sessionToken: string | undefined) {
-    const user = this.appService.requireRole(sessionToken, 'ADMIN');
+  async getRbacStatus(
+    @Headers('x-session-token') sessionToken: string | undefined,
+  ) {
+    const user = await this.appService.requireRole(sessionToken, 'ADMIN');
     return {
       status: 'ok',
       message: 'Admin RBAC access granted',
       user,
       dataSourceMode: process.env.DATA_SOURCE_MODE ?? 'mock',
     };
+  }
+
+  @Get('v1/admin/audit-events')
+  async getAuditEvents(
+    @Headers('x-session-token') sessionToken: string | undefined,
+    @Query('limit') limit?: string,
+  ) {
+    await this.appService.requireRole(sessionToken, 'ADMIN');
+    const parsedLimit = limit ? Number(limit) : 20;
+    return this.appService.getRecentAuditEvents(parsedLimit);
   }
 }

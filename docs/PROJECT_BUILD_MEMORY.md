@@ -64,7 +64,7 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 - [ ] Define core schema (users, profiles, sevas, logs, expenses, roles)
 - [x] Add auth module (V1 local credentials model)
 - [x] Add backend RBAC endpoint enforcement scaffolding
-- [ ] Add RBAC and audit-event module
+- [x] Add RBAC and audit-event module (core scaffolding)
 
 ### E. Data and Integrations
 - [ ] Add DB migrations and seed data
@@ -273,6 +273,44 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 - `npm run test --workspace api -- --runInBand` ✅
 - `npm run test:e2e --workspace api` ✅
 
+## 2026-04-07 — DB-Backed Session Strategy + Audit Event Logging
+
+### What was implemented
+- Extended Prisma schema with new persistence models:
+  - `Session` (session token id, role, expiry, revocation)
+  - `AuditEvent` (actor/action/status/metadata)
+  - Added user relations for sessions and audit events.
+  - File: `services/api/prisma/schema.prisma`
+- Upgraded auth session strategy in API service:
+  - session payload now includes `sid` (session token id)
+  - when DB is configured, token `sid` resolves through persisted `Session` table
+  - fallback behavior still works in mock-only mode without DB
+  - File: `services/api/src/app.service.ts`
+- Added audit logging hooks (DB-available mode):
+  - login success/denied events
+  - authorization denied events
+  - admin endpoint to fetch recent events
+  - Endpoints:
+    - `GET /v1/admin/audit-events`
+  - File: `services/api/src/app.controller.ts`
+- Regenerated Prisma client to sync model changes.
+
+### Files touched
+- `services/api/prisma/schema.prisma`
+- `services/api/src/app.service.ts`
+- `services/api/src/app.controller.ts`
+
+### Why it was implemented this way
+- Establishes a production-ready session model while preserving the current mock-first working mode.
+- Adds governance traceability for auth and authorization actions without blocking feature delivery.
+
+### Validation done
+- `npx prisma generate` ✅
+- `npm run lint` ✅
+- `npm run build` ✅
+- `npm run test --workspace api -- --runInBand` ✅
+- `npm run test:e2e --workspace api` ✅
+
 ## 6) Architecture Snapshot (Current)
 
 ### Frontend
@@ -319,7 +357,7 @@ From repo root:
 
 ## 9) AI Handoff Block (Copy into any new chat)
 
-Use this repo as a monorepo with active modules in `apps/presentation-site`, `apps/portal-web`, and `services/api`. Current state: mock-first auth is active with backend RBAC checks enforced on key endpoints, portal route guards are active, and portal requests send session headers to API. Prisma/PostgreSQL scaffolding exists with conditional login user upsert when `DATABASE_URL` is set. Mock mode is default until org credentials are approved. Next priority is adding audit-event logging + DB-backed session strategy + role checks on future domain modules and deployment configs (Vercel + API host). Do not change timeline anchors: 31 Aug 2026 build deadline and 26 Sep 2026 offering milestone. Preserve SRMD/SRLC terminology and impact-storytelling requirements.
+Use this repo as a monorepo with active modules in `apps/presentation-site`, `apps/portal-web`, and `services/api`. Current state: backend RBAC checks are enforced on key endpoints, DB-backed session strategy is scaffolded via Prisma `Session`, audit logging is scaffolded via Prisma `AuditEvent`, and portal requests send session headers to API. Mock mode still works by default when `DATABASE_URL` is absent. Next priority is adding domain-level RBAC on new modules (expenses/log moderation/admin), plus deploy pipelines (Vercel + API host) and a persistent session revocation/logout endpoint. Do not change timeline anchors: 31 Aug 2026 build deadline and 26 Sep 2026 offering milestone. Preserve SRMD/SRLC terminology and impact-storytelling requirements.
 
 ## 10) Update Protocol (Mandatory for Every Work Session)
 
@@ -368,6 +406,7 @@ This file must be updated in the same PR/commit as code changes.
 - Prisma schema: `services/api/prisma/schema.prisma`
 - Prisma module/service: `services/api/src/prisma/*`
 - Portal session middleware: `apps/portal-web/src/middleware.ts`
+- Admin audit endpoint: `GET /v1/admin/audit-events`
 
 ### External Context Links
 - SRLC website: https://srlcusa.org/

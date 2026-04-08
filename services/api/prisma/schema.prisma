@@ -45,6 +45,41 @@ model User {
   logs           LogEntry[]
   expenses       Expense[]
   assignedSevas  UserSeva[]
+  sessions       Session[]
+  auditEvents    AuditEvent[]
+}
+
+model Session {
+  id             String     @id @default(cuid())
+  sessionTokenId String     @unique
+  userId         String
+  role           RoleLevel
+  authMode       String     @default("mock-v1")
+  issuedAt       DateTime   @default(now())
+  expiresAt      DateTime
+  revokedAt      DateTime?
+
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sessionTokenId])
+}
+
+model AuditEvent {
+  id             String     @id @default(cuid())
+  actorUserId    String?
+  actorGiId      String?
+  action         String
+  target         String?
+  status         String
+  metadataJson   Json?
+  createdAt      DateTime   @default(now())
+
+  actorUser      User?      @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([actorUserId])
+  @@index([actorGiId])
+  @@index([action])
 }
 
 model VolunteerProfile {
