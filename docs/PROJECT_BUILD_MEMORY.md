@@ -471,6 +471,28 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 ### Validation done
 - Documentation-only updates; no functional code changes.
 
+## 2026-04-07 — Supabase ORM Prompt Alignment (DATABASE_URL + DIRECT_URL)
+
+### What was implemented
+- Updated Prisma datasource to support direct migration URL:
+  - `services/api/prisma/schema.prisma`
+  - added `directUrl = env("DIRECT_URL")`
+- Updated env template for Supabase pooled/direct split:
+  - `services/api/.env.example`
+  - `DATABASE_URL` (pooler `:6543` + `pgbouncer=true`)
+  - `DIRECT_URL` (direct `:5432`)
+- Updated runbooks to match Supabase ORM → Prisma output exactly:
+  - `docs/SUPABASE_SETUP.md`
+  - `docs/SUPABASE_ACCESS_STEPS.md`
+  - explicitly notes to skip `npx prisma init` in this repo
+
+### Why it was implemented this way
+- Matches Supabase’s recommended Prisma pattern and avoids migration issues through pooled connections.
+- Keeps runtime connections efficient while preserving reliable migration behavior.
+
+### Validation done
+- Config/docs updated; runtime migration still pending actual credentials in local `.env`.
+
 ## 6) Architecture Snapshot (Current)
 
 ### Frontend

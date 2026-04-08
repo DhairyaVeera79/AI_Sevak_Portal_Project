@@ -14,12 +14,13 @@ Set in `services/api/.env`:
 
 ```dotenv
 DATA_SOURCE_MODE=mock
-DATABASE_URL="postgresql://postgres.<PROJECT_REF>:<PASSWORD>@<DB_HOST>:5432/postgres?sslmode=require"
+DATABASE_URL="postgresql://postgres.<PROJECT_REF>:<PASSWORD>@aws-<REGION>.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.<PROJECT_REF>:<PASSWORD>@aws-<REGION>.pooler.supabase.com:5432/postgres"
 ```
 
 Notes:
-- Use Supabase **direct** Postgres connection string for migration/seed.
-- Keep `sslmode=require`.
+- `DATABASE_URL` should be pooled URI (runtime/client).
+- `DIRECT_URL` should be direct URI (Prisma migrate).
 - Do not commit `services/api/.env`.
 
 ## 2) Generate Prisma client

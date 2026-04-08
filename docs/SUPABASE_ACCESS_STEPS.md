@@ -11,13 +11,16 @@ This is the exact sequence to create a temporary Supabase DB for development and
 
 ## B) Get connection string
 
-1. In Supabase: Project Settings → Database.
-2. Copy the Postgres URI (direct connection).
-3. Ensure it includes `sslmode=require`.
+1. In Supabase dashboard, open **Connect** → **ORM** → **Prisma**.
+2. Copy both values shown there:
+  - pooled connection (`DATABASE_URL`)
+  - direct connection (`DIRECT_URL`)
 
 Expected pattern:
 
-`postgresql://postgres.<PROJECT_REF>:<PASSWORD>@<DB_HOST>:5432/postgres?sslmode=require`
+`DATABASE_URL="postgresql://postgres.<PROJECT_REF>:<PASSWORD>@aws-<REGION>.pooler.supabase.com:6543/postgres?pgbouncer=true"`
+
+`DIRECT_URL="postgresql://postgres.<PROJECT_REF>:<PASSWORD>@aws-<REGION>.pooler.supabase.com:5432/postgres"`
 
 ## C) Add local API env (this gives runtime access in your local workspace)
 
@@ -31,8 +34,13 @@ Edit `services/api/.env`:
 
 ```dotenv
 DATA_SOURCE_MODE=mock
-DATABASE_URL="postgresql://postgres.<PROJECT_REF>:<PASSWORD>@<DB_HOST>:5432/postgres?sslmode=require"
+DATABASE_URL="postgresql://postgres.<PROJECT_REF>:<PASSWORD>@aws-<REGION>.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.<PROJECT_REF>:<PASSWORD>@aws-<REGION>.pooler.supabase.com:5432/postgres"
 ```
+
+Important:
+- Do **not** run `npx prisma init` in this repo (already initialized).
+- Do **not** re-install Prisma unless you intentionally change versions.
 
 ## D) Give me access safely (without sharing secrets in chat)
 
