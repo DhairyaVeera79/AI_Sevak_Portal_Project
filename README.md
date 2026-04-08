@@ -45,3 +45,7 @@ This repository is structured as a **single monorepo** to move fast on documenta
 
 ## Database Quickstart (Supabase)
 - Setup guide: [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md)
+
+## Environment and Access Guides
+- Environment matrix: [docs/ENVIRONMENT_MATRIX.md](docs/ENVIRONMENT_MATRIX.md)
+- Supabase setup + access handoff: [docs/SUPABASE_ACCESS_STEPS.md](docs/SUPABASE_ACCESS_STEPS.md)

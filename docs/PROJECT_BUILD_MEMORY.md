@@ -453,6 +453,24 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 ### Validation done
 - Documentation and templates updated; no runtime code-path changes.
 
+## 2026-04-07 — Environment Matrix + Supabase Access Handoff
+
+### What was implemented
+- Added environment matrix documentation:
+  - `docs/ENVIRONMENT_MATRIX.md`
+  - defines local/staging/production env variables and safe DB cutover flow
+- Added exact Supabase access handoff steps:
+  - `docs/SUPABASE_ACCESS_STEPS.md`
+  - includes “how to give Copilot access safely” without sharing secrets in chat
+- Linked both docs in root README for quick access.
+
+### Why it was implemented this way
+- Gives a repeatable operator flow to provision test DB now and switch to org DB later.
+- Reduces credential leakage risk by keeping secrets local while still enabling command execution from workspace.
+
+### Validation done
+- Documentation-only updates; no functional code changes.
+
 ## 6) Architecture Snapshot (Current)
 
 ### Frontend
@@ -522,6 +540,8 @@ This file must be updated in the same PR/commit as code changes.
 - Build memory (this file): `docs/PROJECT_BUILD_MEMORY.md`
 - Fresh chat bootstrap prompt: `docs/NEXT_CHAT_HANDOFF_PROMPT.md`
 - Supabase setup runbook: `docs/SUPABASE_SETUP.md`
+- Environment matrix: `docs/ENVIRONMENT_MATRIX.md`
+- Supabase access handoff: `docs/SUPABASE_ACCESS_STEPS.md`
 - Monorepo overview: `README.md`
 
 ### Source/Context References
