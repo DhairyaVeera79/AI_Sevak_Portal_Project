@@ -70,7 +70,7 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 - [x] Add logs moderation module (`logs`) with RBAC and audit hooks
 
 ### E. Data and Integrations
-- [ ] Add DB migrations and seed data
+- [ ] Add DB migrations and seed data (blocked: waiting for local `DATABASE_URL`)
 - [x] Add Prisma seed scaffolding (execution pending DB URL)
 - [ ] Add file upload strategy (logs/receipts)
 - [ ] Add notification queue baseline (optional for V1 demo)
@@ -78,7 +78,7 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 
 ### F. DevOps and Delivery
 - [x] Lint and build pipelines working locally
-- [ ] Add GitHub Actions CI (lint/test/build)
+- [x] Add GitHub Actions CI (lint/test/build)
 - [ ] Add Vercel config for presentation + portal
 - [ ] Add API deploy config (Render/Railway/Fly)
 - [x] Create environment variable templates
@@ -415,6 +415,25 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 - `npm run test:e2e --workspace api` ✅
 - `npm run prisma:generate --workspace api` ✅
 
+## 2026-04-07 — Prisma Migration Attempt + GitHub Actions CI
+
+### What was implemented
+- Attempted Prisma migration execution:
+  - `npm run prisma:migrate:dev --workspace api -- --name init`
+  - blocked because local `services/api/.env` is missing and `DATABASE_URL` is not set.
+- Added monorepo CI workflow:
+  - File: `.github/workflows/ci.yml`
+  - Triggers: push to `main`, pull requests, and manual dispatch
+  - Steps: install dependencies, prisma generate, lint, build, API unit tests, API e2e tests
+
+### Why it was implemented this way
+- Unblocks delivery velocity by shipping CI immediately even while DB credentials are pending.
+- Keeps migration task explicit and reproducible once `DATABASE_URL` is provided.
+
+### Validation done
+- Migration command attempted and failed with expected Prisma `P1012` due missing `DATABASE_URL` (documented blocker).
+- Existing local quality checks remain green from previous milestone.
+
 ## 6) Architecture Snapshot (Current)
 
 ### Frontend
@@ -461,7 +480,7 @@ From repo root:
 
 ## 9) AI Handoff Block (Copy into any new chat)
 
-Use this repo as a monorepo with active modules in `apps/presentation-site`, `apps/portal-web`, and `services/api`. Current state: backend RBAC checks are enforced on key endpoints, DB-backed session strategy is scaffolded via Prisma `Session`, logout revocation endpoint is active, audit logging is scaffolded via Prisma `AuditEvent`, and domain modules for both `expenses` and `logs moderation` are implemented with DB path + mock fallback. Portal requests send session headers to API and logs page supports moderation stage transitions via server actions. Prisma seed scaffolding is now added (`services/api/prisma/seed.ts` + `npm run prisma:seed --workspace api`), but migration/seed execution still depends on valid `DATABASE_URL`. Next priority is DB migration execution, then CI/deployment pipelines (Vercel + API host). Do not change timeline anchors: 31 Aug 2026 build deadline and 26 Sep 2026 offering milestone. Preserve SRMD/SRLC terminology and impact-storytelling requirements.
+Use this repo as a monorepo with active modules in `apps/presentation-site`, `apps/portal-web`, and `services/api`. Current state: backend RBAC checks are enforced on key endpoints, DB-backed session strategy is scaffolded via Prisma `Session`, logout revocation endpoint is active, audit logging is scaffolded via Prisma `AuditEvent`, and domain modules for both `expenses` and `logs moderation` are implemented with DB path + mock fallback. Portal requests send session headers to API and logs page supports moderation stage transitions via server actions. Prisma seed scaffolding is added (`services/api/prisma/seed.ts` + `npm run prisma:seed --workspace api`) and GitHub Actions CI is active at `.github/workflows/ci.yml`. DB migration/seed execution is currently blocked only by missing local `DATABASE_URL`. Next priority is DB migration execution once DB URL is provided, then deployment pipelines (Vercel + API host). Do not change timeline anchors: 31 Aug 2026 build deadline and 26 Sep 2026 offering milestone. Preserve SRMD/SRLC terminology and impact-storytelling requirements.
 
 ## 10) Update Protocol (Mandatory for Every Work Session)
 
