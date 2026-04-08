@@ -2,12 +2,16 @@ import {
   BadRequestException,
   Body,
   Controller,
+  ForbiddenException,
   Get,
   Headers,
+  Param,
+  Patch,
   Post,
   Query,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ExpenseStatus } from '@prisma/client';
 import { AppService } from './app.service';
 
 @Controller()
@@ -39,6 +43,68 @@ export class AppController {
   ) {
     await this.appService.requireRole(sessionToken, 'C4');
     return this.appService.getImpactStories();
+  }
+
+  @Get('v1/expenses')
+  async getExpenses(
+    @Headers('x-session-token') sessionToken: string | undefined,
+  ) {
+    const user = await this.appService.requireRole(sessionToken, 'C4');
+    return this.appService.listExpenses(user);
+  }
+
+  @Post('v1/expenses')
+  async createExpense(
+    @Headers('x-session-token') sessionToken: string | undefined,
+    @Body()
+    body: {
+      category?: string;
+      amount?: number;
+      sevaId?: string;
+      attachmentUrl?: string;
+    },
+  ) {
+    const user = await this.appService.requireRole(sessionToken, 'C4');
+
+    if (!body.category || typeof body.amount !== 'number' || !body.sevaId) {
+      throw new BadRequestException(
+        'category, amount, and sevaId are required',
+      );
+    }
+
+    if (body.amount <= 0) {
+      throw new BadRequestException('amount must be greater than zero');
+    }
+
+    return this.appService.createExpense(user, {
+      category: body.category,
+      amount: body.amount,
+      sevaId: body.sevaId,
+      attachmentUrl: body.attachmentUrl,
+    });
+  }
+
+  @Patch('v1/expenses/:id/status')
+  async updateExpenseStatus(
+    @Headers('x-session-token') sessionToken: string | undefined,
+    @Param('id') id: string,
+    @Body() body: { status?: ExpenseStatus },
+  ) {
+    const user = await this.appService.requireRole(sessionToken, 'C2');
+
+    const allowed = new Set<ExpenseStatus>([
+      ExpenseStatus.REVIEWED,
+      ExpenseStatus.APPROVED,
+      ExpenseStatus.REJECTED,
+    ]);
+
+    if (!body.status || !allowed.has(body.status)) {
+      throw new ForbiddenException(
+        'status must be one of REVIEWED, APPROVED, REJECTED',
+      );
+    }
+
+    return this.appService.updateExpenseStatus(user, id, body.status);
   }
 
   @Get('v1/data-source-mode')

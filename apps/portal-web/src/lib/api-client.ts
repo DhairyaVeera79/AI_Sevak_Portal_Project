@@ -29,6 +29,16 @@ export type ImpactStory = {
   summary: string;
 };
 
+export type ExpenseItem = {
+  id: string;
+  sevaId: string;
+  category: string;
+  amount: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3002';
 
 async function fetchJson<T>(path: string): Promise<T | null> {
@@ -102,4 +112,29 @@ export async function getImpactStories(): Promise<ImpactStory[]> {
     },
   ];
   return (await fetchJson<ImpactStory[]>('/v1/impact-stories')) ?? fallback;
+}
+
+export async function getExpenses(): Promise<ExpenseItem[]> {
+  const fallback: ExpenseItem[] = [
+    {
+      id: 'EXP-101',
+      sevaId: 'SEVA-101',
+      category: 'Teaching supplies',
+      amount: 3450,
+      status: 'REVIEWED',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: 'EXP-102',
+      sevaId: 'SEVA-102',
+      category: 'Travel reimbursement',
+      amount: 1200,
+      status: 'SUBMITTED',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ];
+
+  return (await fetchJson<ExpenseItem[]>('/v1/expenses')) ?? fallback;
 }

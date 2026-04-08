@@ -5,7 +5,7 @@ import {
   Optional,
   UnauthorizedException,
 } from '@nestjs/common';
-import { RoleLevel } from '@prisma/client';
+import { ExpenseStatus, RoleLevel } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { HealthPayload, PORTAL_DATA_SOURCE } from './data/portal-data-source';
 import type { PortalDataSource } from './data/portal-data-source';
@@ -24,6 +24,19 @@ export interface SessionUser {
   userId?: string;
   giId: string;
   role: UserRole;
+}
+
+export interface ExpenseRecord {
+  id: string;
+  sevaId: string;
+  userId?: string;
+  actorGiId: string;
+  category: string;
+  amount: number;
+  status: ExpenseStatus;
+  attachmentUrl?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 const roleWeight: Record<UserRole, number> = {
@@ -52,6 +65,31 @@ const userRoleMap: Record<RoleLevel, UserRole> = {
 
 @Injectable()
 export class AppService {
+  private readonly mockExpenses: ExpenseRecord[] = [
+    {
+      id: 'EXP-101',
+      sevaId: 'SEVA-101',
+      userId: undefined,
+      actorGiId: 'C3-DEMO',
+      category: 'Teaching supplies',
+      amount: 3450,
+      status: ExpenseStatus.REVIEWED,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: 'EXP-102',
+      sevaId: 'SEVA-102',
+      userId: undefined,
+      actorGiId: 'C4-DEMO',
+      category: 'Travel reimbursement',
+      amount: 1200,
+      status: ExpenseStatus.SUBMITTED,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ];
+
   constructor(
     @Inject(PORTAL_DATA_SOURCE)
     private readonly dataSource: PortalDataSource,
@@ -84,6 +122,136 @@ export class AppService {
     return stories.filter(
       (story) => story.stage === 'moderation' || story.stage === 'draft',
     );
+  }
+
+  async listExpenses(user: SessionUser) {
+    if (this.hasDatabaseConnection()) {
+      try {
+        const whereClause =
+          roleWeight[user.role] >= roleWeight.C3 || !user.userId
+            ? {}
+            : { userId: user.userId };
+
+        const rows = await this.prismaService!.expense.findMany({
+          where: whereClause,
+          orderBy: { createdAt: 'desc' },
+          take: 100,
+        });
+
+        return rows.map((row) => ({
+          id: row.id,
+          sevaId: row.sevaId,
+          category: row.category,
+          amount: Number(row.amount),
+          status: row.status,
+          attachmentUrl: row.attachmentUrl ?? undefined,
+          createdAt: row.createdAt.toISOString(),
+          updatedAt: row.updatedAt.toISOString(),
+          actorGiId: user.giId,
+          userId: row.userId,
+        }));
+      } catch {
+        return this.filterMockExpensesByRole(user);
+      }
+    }
+
+    return this.filterMockExpensesByRole(user);
+  }
+
+  async createExpense(
+    user: SessionUser,
+    payload: {
+      category: string;
+      amount: number;
+      sevaId: string;
+      attachmentUrl?: string;
+    },
+  ) {
+    const normalized = {
+      category: payload.category.trim(),
+      amount: payload.amount,
+      sevaId: payload.sevaId.trim(),
+      attachmentUrl: payload.attachmentUrl?.trim() || undefined,
+    };
+
+    if (this.hasDatabaseConnection() && user.userId) {
+      try {
+        const created = await this.prismaService!.expense.create({
+          data: {
+            sevaId: normalized.sevaId,
+            userId: user.userId,
+            category: normalized.category,
+            amount: normalized.amount,
+            status: ExpenseStatus.SUBMITTED,
+            attachmentUrl: normalized.attachmentUrl,
+          },
+        });
+
+        await this.createAuditEventIfPossible({
+          actorUserId: user.userId,
+          actorGiId: user.giId,
+          action: 'expense.create',
+          status: 'success',
+          target: created.id,
+          metadataJson: {
+            sevaId: created.sevaId,
+            category: created.category,
+            amount: Number(created.amount),
+          },
+        });
+
+        return {
+          id: created.id,
+          sevaId: created.sevaId,
+          category: created.category,
+          amount: Number(created.amount),
+          status: created.status,
+          attachmentUrl: created.attachmentUrl ?? undefined,
+          createdAt: created.createdAt.toISOString(),
+          updatedAt: created.updatedAt.toISOString(),
+        };
+      } catch {
+        return this.createMockExpense(user, normalized);
+      }
+    }
+
+    return this.createMockExpense(user, normalized);
+  }
+
+  async updateExpenseStatus(
+    user: SessionUser,
+    expenseId: string,
+    status: ExpenseStatus,
+  ) {
+    if (this.hasDatabaseConnection()) {
+      try {
+        const updated = await this.prismaService!.expense.update({
+          where: { id: expenseId },
+          data: { status },
+        });
+
+        await this.createAuditEventIfPossible({
+          actorUserId: user.userId,
+          actorGiId: user.giId,
+          action: 'expense.status.update',
+          status: 'success',
+          target: expenseId,
+          metadataJson: {
+            newStatus: status,
+          },
+        });
+
+        return {
+          id: updated.id,
+          status: updated.status,
+          updatedAt: updated.updatedAt.toISOString(),
+        };
+      } catch {
+        return this.updateMockExpenseStatus(user, expenseId, status);
+      }
+    }
+
+    return this.updateMockExpenseStatus(user, expenseId, status);
   }
 
   async login(giId: string, password: string) {
@@ -367,6 +535,77 @@ export class AppService {
 
   private hasDatabaseConnection() {
     return Boolean(process.env.DATABASE_URL && this.prismaService);
+  }
+
+  private filterMockExpensesByRole(user: SessionUser) {
+    if (roleWeight[user.role] >= roleWeight.C3) {
+      return this.mockExpenses;
+    }
+
+    return this.mockExpenses.filter((entry) => entry.actorGiId === user.giId);
+  }
+
+  private createMockExpense(
+    user: SessionUser,
+    payload: {
+      category: string;
+      amount: number;
+      sevaId: string;
+      attachmentUrl?: string;
+    },
+  ) {
+    const now = new Date().toISOString();
+    const entry: ExpenseRecord = {
+      id: `EXP-${Math.floor(Math.random() * 100000)}`,
+      sevaId: payload.sevaId,
+      userId: user.userId,
+      actorGiId: user.giId,
+      category: payload.category,
+      amount: payload.amount,
+      status: ExpenseStatus.SUBMITTED,
+      attachmentUrl: payload.attachmentUrl,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.mockExpenses.unshift(entry);
+    return entry;
+  }
+
+  private updateMockExpenseStatus(
+    user: SessionUser,
+    expenseId: string,
+    status: ExpenseStatus,
+  ) {
+    const index = this.mockExpenses.findIndex((item) => item.id === expenseId);
+    if (index < 0) {
+      throw new UnauthorizedException('Expense not found');
+    }
+
+    const updated = {
+      ...this.mockExpenses[index],
+      status,
+      updatedAt: new Date().toISOString(),
+    };
+
+    this.mockExpenses[index] = updated;
+
+    void this.createAuditEventIfPossible({
+      actorUserId: user.userId,
+      actorGiId: user.giId,
+      action: 'expense.status.update',
+      status: 'success',
+      target: expenseId,
+      metadataJson: {
+        newStatus: status,
+        source: 'mock',
+      },
+    });
+
+    return {
+      id: updated.id,
+      status: updated.status,
+      updatedAt: updated.updatedAt,
+    };
   }
 
   private parseSessionToken(

@@ -1,21 +1,9 @@
 import { PortalShell } from "@/components/portal-shell";
+import { getExpenses } from "@/lib/api-client";
 
-const entries = [
-  {
-    id: "EXP-219",
-    item: "Teaching supplies",
-    amount: "₹3,450",
-    status: "Under Review",
-  },
-  {
-    id: "EXP-220",
-    item: "Travel reimbursement",
-    amount: "₹1,200",
-    status: "Approved",
-  },
-];
+export default async function ExpensesPage() {
+  const entries = await getExpenses();
 
-export default function ExpensesPage() {
   return (
     <PortalShell title="Expenses" subtitle="Authorized seva expense logging and review">
       <div className="grid gap-4 lg:grid-cols-2">
@@ -34,8 +22,10 @@ export default function ExpensesPage() {
           <ul className="mt-4 space-y-3 text-sm">
             {entries.map((entry) => (
               <li key={entry.id} className="rounded-lg border border-zinc-800 bg-zinc-950 p-3">
-                <p className="font-medium">{entry.item}</p>
-                <p className="text-zinc-400">{entry.id} · {entry.amount}</p>
+                <p className="font-medium">{entry.category}</p>
+                <p className="text-zinc-400">
+                  {entry.id} · ₹{entry.amount.toLocaleString()} · {entry.sevaId}
+                </p>
                 <p className="mt-1 text-zinc-300">Status: {entry.status}</p>
               </li>
             ))}
