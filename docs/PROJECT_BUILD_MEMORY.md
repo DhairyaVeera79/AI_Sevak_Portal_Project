@@ -572,6 +572,25 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 ### Validation done
 - Documentation update only.
 
+## 2026-04-08 — Local Hosting Runtime Fix (PM2 Entrypoint)
+
+### What was implemented
+- Fixed API production start script to match actual Nest build output path:
+  - `services/api/package.json`
+  - changed `start:prod` from `node dist/main` to `node dist/src/main.js`
+- Confirmed PM2 process comes online after rebuild.
+
+### Why it was implemented this way
+- Nest build outputs `main.js` under `dist/src`, so previous script caused repeated PM2 crashes (`MODULE_NOT_FOUND`).
+- Ensures local-PC hosting path (PM2 + tunnel) is operational.
+
+### Validation done
+- `npm run build --workspace api` ✅
+- `npm run test --workspace api -- --runInBand` ✅
+- Public tunnel health checks passed:
+  - `GET /` ✅
+  - `GET /v1/data-source-mode` ✅
+
 ## 6) Architecture Snapshot (Current)
 
 ### Frontend
