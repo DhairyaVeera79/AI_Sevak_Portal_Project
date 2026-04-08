@@ -1,0 +1,23 @@
+{
+  "name": "ai_sevak_portal_project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Sevak Portal monorepo (docs, presentation, web app, API).",
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:presentation": "npm run dev --workspace presentation-site -- --port 3000",
+    "dev:web": "npm run dev --workspace portal-web -- --port 3001",
+    "dev:api": "npm run start:dev --workspace api -- --port 3002",
+    "dev": "concurrently -n presentation,web,api -c magenta,cyan,green \"npm run dev:presentation\" \"npm run dev:web\" \"npm run dev:api\"",
+    "build": "npm run build --workspace presentation-site && npm run build --workspace portal-web && npm run build --workspace api",
+    "lint": "npm run lint --workspace presentation-site && npm run lint --workspace portal-web && npm run lint --workspace api",
+    "test": "npm run test --workspace api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

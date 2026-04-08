@@ -1,0 +1,291 @@
+SRLC AI Projects – Full Technical Documentation
+Research-backed implementation blueprint for 4 shortlisted ideas
+SRLC AI Project Team 7 | Dhairya Veera and Tanvi Savani
+1) Executive Summary
+This document translates the project brain dump into implementable, research-backed plans. Each project includes architecture, AI approach, stack alternatives, deployment guidance, resource planning, phased delivery, risks, and citations.
+2) SRLC Context Alignment
+Organization: Shrimad Rajchandra Love and Care (SRLC) USA
+Mission: Realize One's True Self and Serve Others Selflessly
+Primary site: https://srlcusa.org/
+10 Care Programs:
+Education
+Healthcare
+Humanitarian Care
+Women Empowerment
+Child Care
+Emergency Relief
+Environmental Care
+Community Welfare
+Tribal Welfare
+Animal Welfare
+SRLC pages referenced for context:
+https://srlcusa.org/causes/education/
+https://srlcusa.org/causes/healthcare/
+https://srlcusa.org/causes/humanitarian-care/
+https://srlcusa.org/causes/women-empowerment/
+https://srlcusa.org/causes/child-care/
+https://srlcusa.org/causes/emergency-relief/
+https://srlcusa.org/causes/environmental-care/
+https://srlcusa.org/causes/community-welfare/
+https://srlcusa.org/causes/tribal-welfare/
+https://srlcusa.org/causes/animal-welfare/
+https://srlcusa.org/donate/
+https://srlcusa.org/fundraise
+https://srlcusa.org/volunteer
+3) Portfolio Recommendation
+Shared architecture strategy: one core platform (auth, roles, storage, analytics) + 4 domain apps.
+Delivery strategy: MVP in 3-week sprints with one pilot geography/chapter per project.
+Governance strategy: mandatory human review for high-impact decisions and external communication.
+Security strategy: implement OWASP ASVS and PII controls from day one. [R8][R9]
+
+Project 1: AI Volunteer Seva Portal
+A. Connected SRLC Programs
+All 10 programs (especially Community Welfare, Humanitarian Care, Emergency Relief, Animal Welfare)
+B. Goal
+Unify volunteer registration, AI matching, onboarding, and timeline-based impact logging into one internal platform.
+C. Why This Project Matters
+SRLC is volunteer-driven and distributed across many centers, making manual allocation expensive in admin time.
+Current intake and communication pathways are fragmented (forms, emails, chapter-level coordination).
+Structured timeline data can also power donor transparency and impact storytelling.
+D. Proposed Architecture
+Frontend: React web app (mobile-responsive) with role-based views (Volunteer, Coordinator, Admin). [R2]
+Backend: FastAPI for APIs and workflow orchestration. [R1]
+Data: PostgreSQL for transactional data + object storage for media updates. [R3]
+Auth/storage option A: Supabase Auth + Storage for faster MVP. [R4]
+Auth/storage option B: Firebase Auth + Firestore for rapid mobile integration. [R5]
+Notifications: Twilio WhatsApp/SMS for reminders and approvals. [R7]
+E. AI/ML Design
+Matching engine v1: rules-based scoring (skills, availability, location, interest).
+Matching engine v2: learning-to-rank model from historical acceptance/completion outcomes.
+Onboarding assistant: retrieval-grounded Q&A from seva SOPs and FAQs using LLM APIs. [R6]
+Timeline summarizer: daily/weekly digest generation with moderator approval.
+Content safety checks for timeline uploads before publishing. [R8]
+F. Deployment & Operations
+MVP deployment: Vercel (frontend) + Render/Fly (API) + Supabase (DB/Auth/Storage).
+Scale deployment: AWS ECS/Fargate + RDS PostgreSQL + S3 + CloudFront.
+Security baseline: encryption in transit/at rest, RBAC, audit logs, PII minimization. [R8][R9]
+G. Team, Data, and Resource Plan
+Team: 2 people (full-stack/product + backend/AI).
+Infra: 1 managed DB, 1 API service, 1 frontend host, storage bucket, notification service.
+Data needs: volunteer profiles, seva catalog, SOP docs, timeline media metadata.
+H. Implementation Plan (2-member team)
+Week 1: profile + seva listing + allocation workflow + RBAC.
+Week 2: AI onboarding assistant + notifications + timeline uploads.
+Week 3: moderation + summaries + pilot in 1–2 chapters.
+H2. Two-Member Task Allocation
+Member 1 (Product + Frontend): volunteer journey, dashboards, onboarding UX, chapter feedback loops.
+Member 2 (Backend + AI): APIs, matching logic, AI assistant, moderation pipeline, deployment ops.
+I. KPI and Success Measurement
+Volunteer-to-seva match time
+Onboarding completion rate
+Admin time saved per week
+Active volunteer retention over 30 days
+J. Flowchart (Text Version)
+Volunteer profile -> AI match scoring -> admin/auto allocation -> onboarding assistant -> daily timeline updates -> moderation -> impact summary
+K. References for This Project
+FastAPI docs: https://fastapi.tiangolo.com/
+React docs: https://react.dev/
+PostgreSQL docs: https://www.postgresql.org/docs/current/
+Supabase docs: https://supabase.com/docs
+OpenAI API docs: https://platform.openai.com/docs
+Twilio WhatsApp docs: https://www.twilio.com/docs/whatsapp
+OWASP ASVS: https://owasp.org/www-project-application-security-verification-standard/
+NIST SP 800-122 (PII): https://doi.org/10.6028/NIST.SP.800-122
+
+Project 2: CSR Support Copilot
+A. Connected SRLC Programs
+Cross-program enabler (Education, Healthcare, Humanitarian, Environmental, Tribal)
+B. Goal
+Accelerate CSR partnerships by drafting tailored concept notes, proposals, follow-ups, and impact summaries.
+C. Why This Project Matters
+Proposal writing and follow-ups consume high manual effort and delay outreach cycles.
+SRLC has rich program data; AI can assemble tailored narratives faster while humans review final output.
+A reusable CSR memory improves consistency across teams and chapters.
+D. Proposed Architecture
+Frontend: proposal studio with templates, edits, and approval states.
+Backend: FastAPI orchestration for generation and retrieval workflows. [R1]
+Knowledge base: SRLC impact facts, previous decks/proposals, care program summaries.
+Retrieval + generation: embeddings + vector search + LLM drafting. [R6]
+Storage: PostgreSQL + object storage for versioned proposal assets. [R3]
+E. AI/ML Design
+Input schema: company profile, CSR themes, geography, ticket size, language preference.
+Output pack: 1-pager concept, full proposal draft, email sequence, meeting brief.
+Mandatory grounded citations inside drafts from approved SRLC sources.
+Human-in-the-loop final approval for any external outbound communication.
+Evaluation: response quality rubric + factuality checks + reuse score.
+F. Deployment & Operations
+MVP deployment: same platform as Project 1 for shared cost and operations.
+Enterprise option: private cloud deployment with KMS and strict audit logging.
+Prompt and data security controls guided by OWASP and PII principles. [R8][R9]
+G. Team, Data, and Resource Plan
+Team: 2 people can ship MVP; 3rd person improves templates and eval quality.
+Data needs: cleaned impact metrics, approved content bank, CSR taxonomy.
+Ops: proposal reviewer panel and sign-off workflow.
+H. Implementation Plan (2-member team)
+Week 1: ingestion of approved content + template setup + draft generator.
+Week 2: reviewer workflow + quality rubric + outreach sequence module.
+Week 3: pilot on 5 target companies and compare turnaround time.
+H2. Two-Member Task Allocation
+Member 1 (Partnership Workflow + UI): input forms, proposal editor, review states, outreach cadence UX.
+Member 2 (AI + Data): RAG pipeline, template prompting, factuality checks, source grounding, release ops.
+I. KPI and Success Measurement
+Proposal drafting turnaround time
+Reviewer edit distance per draft
+Outbound CSR opportunities per month
+Conversion to meetings/proposal discussions
+J. Flowchart (Text Version)
+Company intake -> program-fit scoring -> AI draft generation -> reviewer edits -> approved outbound -> impact follow-up
+K. References for This Project
+FastAPI docs: https://fastapi.tiangolo.com/
+PostgreSQL docs: https://www.postgresql.org/docs/current/
+OpenAI API docs: https://platform.openai.com/docs
+OWASP ASVS: https://owasp.org/www-project-application-security-verification-standard/
+NIST SP 800-122 (PII): https://doi.org/10.6028/NIST.SP.800-122
+
+Project 3: Mission Analytics & Distribution Prioritization
+A. Connected SRLC Programs
+Education, Child Care, Humanitarian Care, Tribal Welfare, Healthcare, Emergency Relief
+B. Goal
+Create one analytics platform to detect intervention gaps and forecast resource distribution across centers.
+C. Why This Project Matters
+Program impact data exists but is not always unified into decision-ready insights.
+Education and aid delivery both need proactive planning (attendance gaps, kit shortages, location urgency).
+A shared dashboard can align volunteers, coordinators, and leadership decisions.
+D. Proposed Architecture
+Data pipeline pattern: raw -> cleaned -> metrics marts.
+Orchestration: Apache Airflow for scheduled pipelines. [R10]
+Transformation and testing: dbt models for reliable metrics. [R11]
+Modeling: scikit-learn baselines + XGBoost for tabular prediction tasks. [R12][R13]
+Experiment tracking: MLflow for model/version governance. [R14]
+Visualization: Metabase or Streamlit for role-based dashboards. [R15][R16]
+E. AI/ML Design
+Education risk scoring: absenteeism and support-priority identification.
+Demand forecasting: food/hygiene/clothing/medical kits by location and season.
+Prioritization engine: urgency x vulnerability x logistics feasibility.
+Narrative assistant: auto-generated weekly insight briefs for leadership.
+F. Deployment & Operations
+MVP deployment: single cloud VPC with managed Postgres + containerized Airflow and dashboard.
+Scale path: managed warehouse + managed orchestration + model API service.
+Governance: data contracts, access policies, model monitoring and retraining cadence.
+G. Team, Data, and Resource Plan
+Team: 3 people ideal (data engineer, ML engineer, dashboard/full-stack).
+Data needs: center-level records, distribution records, attendance/beneficiary logs, geography tags.
+Ops: data owner per program for monthly validation.
+H. Implementation Plan (2-member team)
+Week 1: data inventory + schema + first dashboards on historical data.
+Week 2: baseline risk/forecast models + QA checks.
+Week 3: recommendation feed + pilot decision review cycle.
+H2. Two-Member Task Allocation
+Member 1 (Data + Dashboard): data ingestion, validation rules, KPI models, dashboard stories for stakeholders.
+Member 2 (ML + Platform): forecasting models, recommendation logic, API services, monitoring and deployment.
+I. KPI and Success Measurement
+Forecast error (MAPE) for kit demand
+Reduction in stock-out/shortage events
+Improvement in early intervention rate
+Reporting cycle time reduction
+J. Flowchart (Text Version)
+Data intake -> quality checks -> model scoring/forecast -> priority dashboard -> operations action -> outcome feedback loop
+K. References for This Project
+Apache Airflow docs: https://airflow.apache.org/docs/
+dbt docs: https://docs.getdbt.com/
+scikit-learn docs: https://scikit-learn.org/stable/
+XGBoost docs: https://xgboost.readthedocs.io/en/stable/
+MLflow docs: https://mlflow.org/docs/latest/
+Metabase docs: https://www.metabase.com/docs/latest/
+Streamlit docs: https://docs.streamlit.io/
+
+Project 4: Miyawaki Forest Planner & Monitor
+A. Connected SRLC Programs
+Environmental Care (primary), with Community/Tribal co-benefits
+B. Goal
+Operationalize data-driven native plantation planning, SOP execution, and multi-year growth monitoring.
+C. Why This Project Matters
+SRLC environmental programs already include afforestation and conservation initiatives.
+A structured planner improves species fit, spacing quality, and long-term survivability.
+Transparent monitoring can improve donor confidence and volunteer engagement.
+D. Proposed Architecture
+GIS interface: Leaflet/Mapbox map for site polygons and plantation layouts. [R17][R18]
+Backend: geospatial APIs and planning engine (FastAPI + Postgres/PostGIS). [R1][R3]
+Species catalog: India-native reference datasets and partner-curated list. [R20][R21][R22]
+Field monitoring: mobile-friendly upload flow for photos and survival logs.
+Dashboard: phase completion, survival rates, and maintenance reminders.
+E. AI/ML Design
+Species shortlist recommender constrained by eco-region and native suitability.
+Planting density planner with layer guidance aligned to Miyawaki practice.
+Image-assisted health checks (advisory) for early disease/stress prompts.
+Growth narrative summaries for donor and community updates.
+Method references should follow ecology guidance and local expert review. [R19][R23]
+F. Deployment & Operations
+MVP deployment: web app + API + storage + map services; single pilot geography in India.
+Scale path: automate seasonal remote sensing ingestion and anomaly alerts.
+Field protocol: local expert validation before final species and layout lock-in.
+G. Team, Data, and Resource Plan
+Team: 3 people (full-stack/GIS, AI engineer, field-ops coordinator).
+Data needs: site boundary, soil/rainfall context, local species availability, nursery/vendor lists.
+Partnerships: local ecologists/botanists + on-ground volunteers.
+H. Implementation Plan (2-member team)
+Week 1: site planner + species list + procurement estimator.
+Week 2: layout/density module + SOP generation + field checklist.
+Week 3: monitoring uploads + dashboard + first donor-view page.
+H2. Two-Member Task Allocation
+Member 1 (GIS + Field Workflow): map workflows, field forms, SOP flow, volunteer coordination and reporting UX.
+Member 2 (AI + Backend): species/layer planner, monitoring APIs, image-assist checks, deployment and reliability.
+I. KPI and Success Measurement
+Planning cycle duration
+Sapling survival rate at 3/6/12 months
+On-time monitoring compliance
+Volunteer and donor engagement with progress reports
+J. Flowchart (Text Version)
+Site selection -> native species shortlist -> layout and procurement -> SOP-guided plantation -> periodic monitoring -> impact reporting
+K. References for This Project
+FastAPI docs: https://fastapi.tiangolo.com/
+PostgreSQL docs: https://www.postgresql.org/docs/current/
+Leaflet reference: https://leafletjs.com/reference.html
+Mapbox docs: https://docs.mapbox.com/
+Miyawaki paper (Ecological Engineering, 1999): https://doi.org/10.1016/S0925-8574(98)00063-9
+Forest Survey of India: https://fsi.nic.in/
+Botanical Survey of India: https://bsi.gov.in/
+India Biodiversity Portal: https://www.indiabiodiversity.org/
+IUCN Nature-based Solutions resource hub: https://iucn.org/resources
+
+4) Cross-Project Deployment Blueprint
+Core services: auth, roles, logging, notifications, and storage should be shared across all projects.
+Environment model: dev -> staging -> production with weekly release windows.
+Monitoring: uptime, API latency, task failures, model performance, and data quality alerts.
+Backup and retention: scheduled DB backups + storage lifecycle rules.
+Security hardening: secrets management, MFA for admins, least privilege, audit logs. [R8][R9]
+5) Suggested Tech Stack (Practical)
+Frontend: React (web), responsive-first design. [R2]
+Backend APIs: FastAPI. [R1]
+Database: PostgreSQL. [R3]
+Auth/Storage (fast MVP): Supabase or Firebase. [R4][R5]
+AI APIs: OpenAI for generation and embeddings. [R6]
+Data orchestration: Airflow + dbt. [R10][R11]
+Modeling: scikit-learn and XGBoost. [R12][R13]
+Model lifecycle: MLflow. [R14]
+Analytics UI: Metabase or Streamlit. [R15][R16]
+Geo: Leaflet and/or Mapbox. [R17][R18]
+6) Master Reference List
+[R1] FastAPI docs: https://fastapi.tiangolo.com/
+[R2] React docs: https://react.dev/
+[R3] PostgreSQL docs: https://www.postgresql.org/docs/current/
+[R4] Supabase docs: https://supabase.com/docs
+[R5] Firebase docs: https://firebase.google.com/docs
+[R6] OpenAI API docs: https://platform.openai.com/docs
+[R7] Twilio WhatsApp docs: https://www.twilio.com/docs/whatsapp
+[R8] OWASP ASVS: https://owasp.org/www-project-application-security-verification-standard/
+[R9] NIST SP 800-122 (PII): https://doi.org/10.6028/NIST.SP.800-122
+[R10] Apache Airflow docs: https://airflow.apache.org/docs/
+[R11] dbt docs: https://docs.getdbt.com/
+[R12] scikit-learn docs: https://scikit-learn.org/stable/
+[R13] XGBoost docs: https://xgboost.readthedocs.io/en/stable/
+[R14] MLflow docs: https://mlflow.org/docs/latest/
+[R15] Metabase docs: https://www.metabase.com/docs/latest/
+[R16] Streamlit docs: https://docs.streamlit.io/
+[R17] Leaflet reference: https://leafletjs.com/reference.html
+[R18] Mapbox docs: https://docs.mapbox.com/
+[R19] Miyawaki paper (Ecological Engineering, 1999): https://doi.org/10.1016/S0925-8574(98)00063-9
+[R20] Forest Survey of India: https://fsi.nic.in/
+[R21] Botanical Survey of India: https://bsi.gov.in/
+[R22] India Biodiversity Portal: https://www.indiabiodiversity.org/
+[R23] IUCN Nature-based Solutions resource hub: https://iucn.org/resources

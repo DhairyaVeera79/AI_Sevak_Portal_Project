@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleLevel {
+  C1
+  C2
+  C3
+  C4
+  ADMIN
+}
+
+enum SevaMode {
+  OPEN
+  APPROVAL
+}
+
+enum StoryStage {
+  DRAFT
+  MODERATION
+  REVIEWED
+}
+
+enum ExpenseStatus {
+  SUBMITTED
+  REVIEWED
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id             String            @id @default(cuid())
+  giId           String            @unique
+  email          String?           @unique
+  displayName    String
+  role           RoleLevel         @default(C4)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  profile        VolunteerProfile?
+  logs           LogEntry[]
+  expenses       Expense[]
+  assignedSevas  UserSeva[]
+}
+
+model VolunteerProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  location       String?
+  availabilityHrs Int?
+  skillsJson     Json?
+  interestsJson  Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Seva {
+  id            String      @id @default(cuid())
+  code          String      @unique
+  title         String
+  mode          SevaMode
+  hoursPerWeek  Int
+  seatsTotal    Int
+  seatsLeft     Int
+  skillTagsJson Json?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  logs          LogEntry[]
+  expenses      Expense[]
+  assignees     UserSeva[]
+}
+
+model UserSeva {
+  id         String   @id @default(cuid())
+  userId     String
+  sevaId     String
+  joinedAt   DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seva       Seva     @relation(fields: [sevaId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sevaId])
+}
+
+model LogEntry {
+  id          String     @id @default(cuid())
+  sevaId      String
+  userId      String
+  title       String
+  summary     String
+  stage       StoryStage @default(DRAFT)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  seva        Seva       @relation(fields: [sevaId], references: [id], onDelete: Cascade)
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Expense {
+  id            String        @id @default(cuid())
+  sevaId         String
+  userId         String
+  category       String
+  amount         Decimal      @db.Decimal(10, 2)
+  status         ExpenseStatus @default(SUBMITTED)
+  attachmentUrl  String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  seva           Seva         @relation(fields: [sevaId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
