@@ -12,7 +12,7 @@ This is the exact operator flow to deploy all three services now.
 
 ---
 
-## 1) Deploy API first (Choose one)
+## 1) Deploy API first (Render)
 
 ### Option A (recommended): Render Blueprint
 
@@ -32,44 +32,6 @@ This is the exact operator flow to deploy all three services now.
 
 Expected URL pattern:
 - `https://ai-sevak-portal-api.onrender.com`
-
-### Option B (no-card, this PC): PM2 + Cloudflare Tunnel
-
-1. Install process manager and tunnel client (once):
-
-```bash
-brew install cloudflared
-npm install -g pm2
-```
-
-2. Ensure API env is configured:
-    - file: `services/api/.env`
-    - required values:
-       - `DATABASE_URL`
-       - `DIRECT_URL`
-       - `DATA_SOURCE_MODE=mock`
-
-3. Build and start API with PM2:
-
-```bash
-cd services/api
-npm ci
-npm run build
-pm2 start "npm run start:prod" --name ai-sevak-portal-api
-pm2 save
-```
-
-4. Start public tunnel to local API (`3000`):
-
-```bash
-cloudflared tunnel --url http://localhost:3000
-```
-
-5. Copy the generated public URL from tunnel output (example: `https://<random>.trycloudflare.com`).
-
-Notes:
-- Keep terminal open while tunnel is running.
-- For always-on reliability, run this on your always-on Mac mini later.
 
 ### Smoke check
 

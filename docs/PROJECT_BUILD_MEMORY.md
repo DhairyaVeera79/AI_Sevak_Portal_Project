@@ -554,24 +554,6 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 ### Validation done
 - Documentation update only.
 
-## 2026-04-08 — Local PC Deployment Option (No-Card Path)
-
-### What was implemented
-- Extended deployment checklist to include a no-card API option:
-  - `infra/DEPLOYMENT_EXECUTION_TODAY.md`
-  - added Option B: local API hosting on this PC via PM2 + Cloudflare Tunnel.
-- Added dedicated local hosting runbook:
-  - `infra/LOCAL_PC_API_HOSTING.md`
-  - includes install, env setup, PM2 lifecycle commands, tunnel steps, portal env wiring, and limitations.
-- Linked local hosting guide from root `README.md`.
-
-### Why it was implemented this way
-- Unblocks immediate live testing when Render billing/card setup is undesirable.
-- Preserves quick migration path to always-on infrastructure later.
-
-### Validation done
-- Documentation update only.
-
 ## 6) Architecture Snapshot (Current)
 
 ### Frontend
@@ -645,7 +627,6 @@ This file must be updated in the same PR/commit as code changes.
 - Supabase access handoff: `docs/SUPABASE_ACCESS_STEPS.md`
 - Deployment runbook: `infra/DEPLOYMENT_RUNBOOK.md`
 - Deployment execution checklist: `infra/DEPLOYMENT_EXECUTION_TODAY.md`
-- Local PC hosting guide: `infra/LOCAL_PC_API_HOSTING.md`
 - Monorepo overview: `README.md`
 
 ### Source/Context References
