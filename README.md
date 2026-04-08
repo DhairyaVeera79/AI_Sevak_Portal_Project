@@ -49,3 +49,7 @@ This repository is structured as a **single monorepo** to move fast on documenta
 ## Environment and Access Guides
 - Environment matrix: [docs/ENVIRONMENT_MATRIX.md](docs/ENVIRONMENT_MATRIX.md)
 - Supabase setup + access handoff: [docs/SUPABASE_ACCESS_STEPS.md](docs/SUPABASE_ACCESS_STEPS.md)
+
+## Deployment Guides
+- Runbook: [infra/DEPLOYMENT_RUNBOOK.md](infra/DEPLOYMENT_RUNBOOK.md)
+- Render blueprint: [render.yaml](render.yaml)

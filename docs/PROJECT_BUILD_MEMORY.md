@@ -79,8 +79,8 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 ### F. DevOps and Delivery
 - [x] Lint and build pipelines working locally
 - [x] Add GitHub Actions CI (lint/test/build)
-- [ ] Add Vercel config for presentation + portal
-- [ ] Add API deploy config (Render/Railway/Fly)
+- [x] Add Vercel config for presentation + portal
+- [x] Add API deploy config (Render/Railway/Fly)
 - [x] Create environment variable templates
 - [ ] Prepare demo runbook + handoff package
 
@@ -518,6 +518,28 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 - `npm run test --workspace api -- --runInBand` ✅
 - `npm run test:e2e --workspace api` ✅
 
+## 2026-04-08 — Deployment Scaffolding (Vercel + API Host Baseline)
+
+### What was implemented
+- Added Vercel config files for both Next.js apps:
+  - `apps/presentation-site/vercel.json`
+  - `apps/portal-web/vercel.json`
+- Added API deployment artifacts:
+  - `services/api/Dockerfile`
+  - `services/api/Procfile`
+  - `render.yaml` blueprint at repo root
+- Added deployment runbook:
+  - `infra/DEPLOYMENT_RUNBOOK.md`
+  - covers Vercel setup for both apps, Render baseline, Railway/Fly command compatibility, env var requirements, and post-deploy verification.
+- Linked deployment docs from root README.
+
+### Why it was implemented this way
+- Provides immediate deploy-ready baseline without locking into a single API host.
+- Keeps configuration explicit and reproducible for staging/production rollout.
+
+### Validation done
+- Structural/config changes only; local lint/build/test validation run after scaffolding.
+
 ## 6) Architecture Snapshot (Current)
 
 ### Frontend
@@ -564,7 +586,7 @@ From repo root:
 
 ## 9) AI Handoff Block (Copy into any new chat)
 
-Use this repo as a monorepo with active modules in `apps/presentation-site`, `apps/portal-web`, and `services/api`. Current state: backend RBAC checks are enforced on key endpoints, DB-backed session strategy is scaffolded via Prisma `Session`, logout revocation endpoint is active, audit logging is scaffolded via Prisma `AuditEvent`, and domain modules for both `expenses` and `logs moderation` are implemented with DB path + mock fallback. Portal requests send session headers to API and logs page supports moderation stage transitions via server actions. Prisma migration + seed are now executed on Supabase test DB, and GitHub Actions CI is active at `.github/workflows/ci.yml`. Next priority is deployment pipelines (Vercel + API host) and production cutover planning to org-managed DB. Do not change timeline anchors: 31 Aug 2026 build deadline and 26 Sep 2026 offering milestone. Preserve SRMD/SRLC terminology and impact-storytelling requirements.
+Use this repo as a monorepo with active modules in `apps/presentation-site`, `apps/portal-web`, and `services/api`. Current state: backend RBAC checks are enforced on key endpoints, DB-backed session strategy is scaffolded via Prisma `Session`, logout revocation endpoint is active, audit logging is scaffolded via Prisma `AuditEvent`, and domain modules for both `expenses` and `logs moderation` are implemented with DB path + mock fallback. Portal requests send session headers to API and logs page supports moderation stage transitions via server actions. Prisma migration + seed are executed on Supabase test DB, GitHub Actions CI is active at `.github/workflows/ci.yml`, and deployment scaffolding is added (`vercel.json` files, `render.yaml`, API `Dockerfile`/`Procfile`, and `infra/DEPLOYMENT_RUNBOOK.md`). Next priority is executing live deployments, wiring production URLs/env vars, and then presentation visual polish. Do not change timeline anchors: 31 Aug 2026 build deadline and 26 Sep 2026 offering milestone. Preserve SRMD/SRLC terminology and impact-storytelling requirements.
 
 ## 10) Update Protocol (Mandatory for Every Work Session)
 
@@ -589,6 +611,7 @@ This file must be updated in the same PR/commit as code changes.
 - Supabase setup runbook: `docs/SUPABASE_SETUP.md`
 - Environment matrix: `docs/ENVIRONMENT_MATRIX.md`
 - Supabase access handoff: `docs/SUPABASE_ACCESS_STEPS.md`
+- Deployment runbook: `infra/DEPLOYMENT_RUNBOOK.md`
 - Monorepo overview: `README.md`
 
 ### Source/Context References
@@ -614,6 +637,13 @@ This file must be updated in the same PR/commit as code changes.
 - API bootstrap/CORS: `services/api/src/main.ts`
 - API datasource contracts/adapters: `services/api/src/data/*`
 - Portal API client: `apps/portal-web/src/lib/api-client.ts`
+- Vercel app configs:
+  - `apps/presentation-site/vercel.json`
+  - `apps/portal-web/vercel.json`
+- API host deployment configs:
+  - `services/api/Dockerfile`
+  - `services/api/Procfile`
+  - `render.yaml`
 - Prisma schema: `services/api/prisma/schema.prisma`
 - Prisma module/service: `services/api/src/prisma/*`
 - Portal session middleware: `apps/portal-web/src/middleware.ts`
