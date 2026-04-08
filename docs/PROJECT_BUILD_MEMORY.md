@@ -70,8 +70,8 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 - [x] Add logs moderation module (`logs`) with RBAC and audit hooks
 
 ### E. Data and Integrations
-- [ ] Add DB migrations and seed data (blocked: waiting for local `DATABASE_URL`)
-- [x] Add Prisma seed scaffolding (execution pending DB URL)
+- [x] Add DB migrations and seed data
+- [x] Add Prisma seed scaffolding and execution
 - [ ] Add file upload strategy (logs/receipts)
 - [ ] Add notification queue baseline (optional for V1 demo)
 - [x] Design Get-Involved integration adapter (future-compatible)
@@ -493,6 +493,31 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 ### Validation done
 - Config/docs updated; runtime migration still pending actual credentials in local `.env`.
 
+## 2026-04-08 — Supabase Migration + Seed Executed
+
+### What was implemented
+- Generated Prisma client against configured Supabase environment.
+- Executed first migration successfully:
+  - command: `npm run prisma:migrate:dev --workspace api -- --name init`
+  - migration created/applied: `services/api/prisma/migrations/20260408025443_init/migration.sql`
+- Executed seed successfully:
+  - command: `npm run prisma:seed --workspace api`
+  - seeded users, sevas, logs, expenses, and user-seva mappings.
+- Restored API workspace seed script/config in `services/api/package.json` to ensure repeatable seed runs.
+
+### Why it was implemented this way
+- Completes DB activation milestone for V1 while preserving portability to future org-managed PostgreSQL.
+- Ensures schema + seed are reproducible in local/dev environments.
+
+### Validation done
+- `npm run prisma:generate --workspace api` ✅
+- `npm run prisma:migrate:dev --workspace api -- --name init` ✅
+- `npm run prisma:seed --workspace api` ✅
+- `npm run lint` ✅
+- `npm run build` ✅
+- `npm run test --workspace api -- --runInBand` ✅
+- `npm run test:e2e --workspace api` ✅
+
 ## 6) Architecture Snapshot (Current)
 
 ### Frontend
@@ -503,9 +528,9 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 - `services/api`: NestJS API with modular upgrade path to auth, RBAC, Prisma
 - Datasource adapters: mock/org mode switch using `DATA_SOURCE_MODE`
 
-### Planned Data Layer
-- PostgreSQL + Prisma (next implementation step)
-- Prisma schema and client scaffolding completed; migration execution pending DB credentials.
+### Data Layer
+- PostgreSQL + Prisma (active)
+- Initial migration and seed executed successfully on Supabase test DB.
 
 ## 7) Component and Ownership Map (Current)
 
@@ -539,7 +564,7 @@ From repo root:
 
 ## 9) AI Handoff Block (Copy into any new chat)
 
-Use this repo as a monorepo with active modules in `apps/presentation-site`, `apps/portal-web`, and `services/api`. Current state: backend RBAC checks are enforced on key endpoints, DB-backed session strategy is scaffolded via Prisma `Session`, logout revocation endpoint is active, audit logging is scaffolded via Prisma `AuditEvent`, and domain modules for both `expenses` and `logs moderation` are implemented with DB path + mock fallback. Portal requests send session headers to API and logs page supports moderation stage transitions via server actions. Prisma seed scaffolding is added (`services/api/prisma/seed.ts` + `npm run prisma:seed --workspace api`) and GitHub Actions CI is active at `.github/workflows/ci.yml`. DB migration/seed execution is currently blocked only by missing local `DATABASE_URL`. Next priority is DB migration execution once DB URL is provided, then deployment pipelines (Vercel + API host). Do not change timeline anchors: 31 Aug 2026 build deadline and 26 Sep 2026 offering milestone. Preserve SRMD/SRLC terminology and impact-storytelling requirements.
+Use this repo as a monorepo with active modules in `apps/presentation-site`, `apps/portal-web`, and `services/api`. Current state: backend RBAC checks are enforced on key endpoints, DB-backed session strategy is scaffolded via Prisma `Session`, logout revocation endpoint is active, audit logging is scaffolded via Prisma `AuditEvent`, and domain modules for both `expenses` and `logs moderation` are implemented with DB path + mock fallback. Portal requests send session headers to API and logs page supports moderation stage transitions via server actions. Prisma migration + seed are now executed on Supabase test DB, and GitHub Actions CI is active at `.github/workflows/ci.yml`. Next priority is deployment pipelines (Vercel + API host) and production cutover planning to org-managed DB. Do not change timeline anchors: 31 Aug 2026 build deadline and 26 Sep 2026 offering milestone. Preserve SRMD/SRLC terminology and impact-storytelling requirements.
 
 ## 10) Update Protocol (Mandatory for Every Work Session)
 
