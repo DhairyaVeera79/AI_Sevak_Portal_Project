@@ -12,26 +12,34 @@ This is the exact operator flow to deploy all three services now.
 
 ---
 
-## 1) Deploy API first (Render)
+## 1) Deploy API first (Railway)
 
-### Option A (recommended): Render Blueprint
+### Option A (recommended): Railway
 
-1. Go to Render dashboard.
-2. Click **New +** → **Blueprint**.
-3. Connect/select GitHub repo: `AI_Sevak_Portal_Project`.
-4. Confirm Render detected `render.yaml`.
-5. Create service.
-6. Open created service `ai-sevak-portal-api`.
-7. Set environment variables:
+1. Go to Railway dashboard.
+2. Create project from GitHub repo: `AI_Sevak_Portal_Project`.
+3. Add service from repo with root directory `services/api`.
+4. Set build/start commands:
+   - Build: `npm ci && npm run build`
+   - Start: `npm run start:prod`
+5. Set environment variables:
    - `DATABASE_URL` = your Supabase runtime URL
    - `DIRECT_URL` = your Supabase direct URL
    - `DATA_SOURCE_MODE` = `mock`
    - `NODE_ENV` = `production`
-8. Trigger deploy if not automatic.
-9. Wait for green deploy and copy API URL.
+6. Deploy and copy API URL.
 
 Expected URL pattern:
-- `https://ai-sevak-portal-api.onrender.com`
+- Railway generated service domain (project/service specific)
+
+### Option B: Render Blueprint
+
+If Railway plan/account constraints block deployment, fallback to Render:
+1. Go to Render dashboard.
+2. Click **New +** → **Blueprint**.
+3. Connect/select GitHub repo: `AI_Sevak_Portal_Project`.
+4. Confirm Render detected `render.yaml`.
+5. Create service and set same env vars as above.
 
 ### Smoke check
 
@@ -61,7 +69,7 @@ Expected: JSON with `status: "ok"`.
 1. In Vercel, create another project from same repo.
 2. Set **Root Directory** to `apps/portal-web`.
 3. Add env var before deploy:
-   - `NEXT_PUBLIC_API_BASE_URL` = your API Render URL
+   - `NEXT_PUBLIC_API_BASE_URL` = your deployed API URL (Railway or Render)
 4. Deploy.
 5. Copy generated portal URL.
 

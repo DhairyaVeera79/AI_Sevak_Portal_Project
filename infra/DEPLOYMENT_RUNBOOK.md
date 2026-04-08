@@ -3,7 +3,7 @@
 This runbook covers baseline deployment for:
 - `apps/presentation-site` (Vercel)
 - `apps/portal-web` (Vercel)
-- `services/api` (Render baseline; Railway/Fly-compatible commands included)
+- `services/api` (Railway baseline; Render/Fly-compatible alternatives)
 
 ## 1) Vercel — Presentation Site
 
@@ -26,16 +26,13 @@ Required env vars:
 - `NEXT_PUBLIC_API_BASE_URL=<deployed-api-url>`
 
 Example:
-- `NEXT_PUBLIC_API_BASE_URL=https://ai-sevak-portal-api.onrender.com`
+- `NEXT_PUBLIC_API_BASE_URL=https://<railway-api-domain>`
 
-## 3) API Host — Render (baseline)
+## 3) API Host — Railway (baseline)
 
-This repo includes [render.yaml](../render.yaml) and [services/api/Procfile](../services/api/Procfile).
+Use [RAILWAY_DEPLOYMENT.md](./RAILWAY_DEPLOYMENT.md) for click-by-click setup.
 
-Option A (Blueprint):
-- Create Render service from repository blueprint (`render.yaml`).
-
-Option B (Manual service setup):
+Manual summary:
 - Root directory: `services/api`
 - Build command: `npm ci && npm run build`
 - Start command: `npm run start:prod`
@@ -48,7 +45,10 @@ Required env vars:
 Health check endpoint:
 - `GET /`
 
-## 4) API Host Alternatives (Railway / Fly)
+## 4) API Host Alternatives (Render / Fly)
+
+Render alternative:
+- Use [render.yaml](../render.yaml) blueprint or manual service setup with same commands/env vars.
 
 Use these same commands and env variables:
 - Build: `npm ci && npm run build`

@@ -554,6 +554,28 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 ### Validation done
 - Documentation update only.
 
+## 2026-04-08 — Rollback of Local Tunnel Path + Railway-First Deployment
+
+### What was implemented
+- Reverted local Cloudflare tunnel/no-card hosting changes and returned deployment docs to managed-host baseline.
+- Confirmed no active `cloudflared` tunnel process remains on the machine.
+- Restored API production runtime fix in package scripts:
+  - `services/api/package.json`
+  - `start:prod` set to `node dist/src/main.js` (matches Nest output)
+- Updated deployment strategy to Railway-first for API (no-card-friendly start), with Render fallback:
+  - added `infra/RAILWAY_DEPLOYMENT.md`
+  - updated `infra/DEPLOYMENT_RUNBOOK.md`
+  - updated `infra/DEPLOYMENT_EXECUTION_TODAY.md`
+  - updated `README.md` deployment links
+
+### Why it was implemented this way
+- Aligns with request to scrap tunnel approach and proceed with managed deployment guidance.
+- Keeps a practical no-card path while preserving Render compatibility.
+
+### Validation done
+- `npm run build --workspace api` ✅
+- `npm run test --workspace api -- --runInBand` ✅
+
 ## 6) Architecture Snapshot (Current)
 
 ### Frontend
