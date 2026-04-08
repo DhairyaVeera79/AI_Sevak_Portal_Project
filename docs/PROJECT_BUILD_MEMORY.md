@@ -591,36 +591,6 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
   - `GET /` ✅
   - `GET /v1/data-source-mode` ✅
 
-## 2026-04-08 — Public Tunnel Security Hardening + Exposure Audit
-
-### What was implemented
-- Hardened API bind behavior for local hosting:
-  - `services/api/src/main.ts`
-  - API now binds to `API_BIND_HOST` with secure default `127.0.0.1`.
-- Enabled local tunnel hardening in runtime env (`services/api/.env`, local only):
-  - `PUBLIC_TUNNEL_API_KEY` set
-  - `PUBLIC_RATE_LIMIT_MAX` and `PUBLIC_RATE_WINDOW_MS` set
-  - `API_BIND_HOST=127.0.0.1` set
-- Restarted PM2 API process with updated env.
-
-### Exposure audit results
-- Before hardening:
-  - API listened on `*:3000` (LAN-visible)
-  - non-health endpoints were reachable via tunnel without tunnel key.
-- After hardening:
-  - API listens on `127.0.0.1:3000` only.
-  - Public tunnel requests to protected endpoints without key return `401`.
-  - Health endpoint `/` remains intentionally reachable.
-
-### Validation done
-- PM2 process status: `online` ✅
-- Listener check: `127.0.0.1:3000` only ✅
-- Tunnel probe without key:
-  - `GET /v1/data-source-mode` → `401` ✅
-  - `GET /v1/sevas` → `401` ✅
-- Health endpoint:
-  - `GET /` → `200` ✅
-
 ## 6) Architecture Snapshot (Current)
 
 ### Frontend
