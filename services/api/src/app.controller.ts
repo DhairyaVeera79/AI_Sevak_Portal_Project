@@ -19,17 +19,24 @@ export class AppController {
   }
 
   @Get('v1/sevas')
-  getSevas() {
+  getSevas(@Headers('x-session-token') sessionToken: string | undefined) {
+    this.appService.requireRole(sessionToken, 'C4');
     return this.appService.getSevas();
   }
 
   @Get('v1/dashboard-metrics')
-  getDashboardMetrics() {
+  getDashboardMetrics(
+    @Headers('x-session-token') sessionToken: string | undefined,
+  ) {
+    this.appService.requireRole(sessionToken, 'C4');
     return this.appService.getDashboardMetrics();
   }
 
   @Get('v1/impact-stories')
-  getImpactStories() {
+  getImpactStories(
+    @Headers('x-session-token') sessionToken: string | undefined,
+  ) {
+    this.appService.requireRole(sessionToken, 'C4');
     return this.appService.getImpactStories();
   }
 
@@ -39,12 +46,12 @@ export class AppController {
   }
 
   @Post('v1/auth/login')
-  login(@Body() body: { giId?: string; password?: string }) {
+  async login(@Body() body: { giId?: string; password?: string }) {
     if (!body.giId || !body.password) {
       throw new BadRequestException('giId and password are required');
     }
 
-    const result = this.appService.login(body.giId, body.password);
+    const result = await this.appService.login(body.giId, body.password);
     if (!result.accepted) {
       throw new UnauthorizedException('Invalid credentials for V1 mock login');
     }
@@ -60,10 +67,18 @@ export class AppController {
 
   @Get('v1/auth/me')
   getCurrentUser(@Headers('x-session-token') sessionToken: string | undefined) {
-    const user = this.appService.getCurrentUserFromToken(sessionToken);
-    if (!user) {
-      throw new UnauthorizedException('No active session');
-    }
+    const user = this.appService.requireRole(sessionToken, 'C4');
     return user;
+  }
+
+  @Get('v1/admin/rbac-status')
+  getRbacStatus(@Headers('x-session-token') sessionToken: string | undefined) {
+    const user = this.appService.requireRole(sessionToken, 'ADMIN');
+    return {
+      status: 'ok',
+      message: 'Admin RBAC access granted',
+      user,
+      dataSourceMode: process.env.DATA_SOURCE_MODE ?? 'mock',
+    };
   }
 }

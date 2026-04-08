@@ -63,6 +63,7 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 - [x] Add Prisma setup and PostgreSQL connection (mock-safe; real DB URL pending)
 - [ ] Define core schema (users, profiles, sevas, logs, expenses, roles)
 - [x] Add auth module (V1 local credentials model)
+- [x] Add backend RBAC endpoint enforcement scaffolding
 - [ ] Add RBAC and audit-event module
 
 ### E. Data and Integrations
@@ -240,6 +241,38 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 - `npm run test --workspace api -- --runInBand` ✅
 - `npm run test:e2e --workspace api` ✅
 
+## 2026-04-07 — Backend RBAC Enforcement + DB-Ready Auth Persistence
+
+### What was implemented
+- Added backend RBAC enforcement checks on core endpoints using session token headers:
+  - `GET /v1/sevas`
+  - `GET /v1/dashboard-metrics`
+  - `GET /v1/impact-stories`
+  - `GET /v1/auth/me`
+- Added admin-only RBAC validation endpoint:
+  - `GET /v1/admin/rbac-status`
+- Added centralized role hierarchy and `requireRole` enforcement in API service.
+- Upgraded auth login flow to support DB persistence when `DATABASE_URL` is available:
+  - `login` now asynchronously attempts `User` upsert (GI ID + role + displayName).
+  - Safe no-op when DB is not configured (mock-first mode preserved).
+- Updated portal API client to send `x-session-token` from cookies for protected endpoints.
+
+### Files touched
+- `services/api/src/app.controller.ts`
+- `services/api/src/app.service.ts`
+- `apps/portal-web/src/lib/api-client.ts`
+
+### Why it was implemented this way
+- Moves authorization logic to backend where policy should be enforced.
+- Preserves current demo velocity with dummy data while making auth compatible with DB-backed user state.
+- Keeps migration path clean for future org auth adapter integration.
+
+### Validation done
+- `npm run lint` ✅
+- `npm run build` ✅
+- `npm run test --workspace api -- --runInBand` ✅
+- `npm run test:e2e --workspace api` ✅
+
 ## 6) Architecture Snapshot (Current)
 
 ### Frontend
@@ -286,7 +319,7 @@ From repo root:
 
 ## 9) AI Handoff Block (Copy into any new chat)
 
-Use this repo as a monorepo with active modules in `apps/presentation-site`, `apps/portal-web`, and `services/api`. Current state: mock-first auth + RBAC scaffolding is active (API login/session endpoints, portal route guard, role-aware nav/signout), portal dashboard/sevas/logs are wired to API via datasource adapters, and Prisma/PostgreSQL scaffolding is in place (mock-safe when `DATABASE_URL` is absent). Mock mode is default until org credentials are approved. Next priority is domain RBAC enforcement on backend modules + database-backed auth/user persistence + deployment configs (Vercel + API host). Do not change timeline anchors: 31 Aug 2026 build deadline and 26 Sep 2026 offering milestone. Preserve SRMD/SRLC terminology and impact-storytelling requirements.
+Use this repo as a monorepo with active modules in `apps/presentation-site`, `apps/portal-web`, and `services/api`. Current state: mock-first auth is active with backend RBAC checks enforced on key endpoints, portal route guards are active, and portal requests send session headers to API. Prisma/PostgreSQL scaffolding exists with conditional login user upsert when `DATABASE_URL` is set. Mock mode is default until org credentials are approved. Next priority is adding audit-event logging + DB-backed session strategy + role checks on future domain modules and deployment configs (Vercel + API host). Do not change timeline anchors: 31 Aug 2026 build deadline and 26 Sep 2026 offering milestone. Preserve SRMD/SRLC terminology and impact-storytelling requirements.
 
 ## 10) Update Protocol (Mandatory for Every Work Session)
 

@@ -1,3 +1,7 @@
+import 'server-only';
+
+import { cookies } from 'next/headers';
+
 export type Seva = {
   id: string;
   title: string;
@@ -29,8 +33,16 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3
 
 async function fetchJson<T>(path: string): Promise<T | null> {
   try {
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get('ai_sevak_session')?.value;
+
     const response = await fetch(`${API_BASE_URL}${path}`, {
       cache: 'no-store',
+      headers: sessionToken
+        ? {
+            'x-session-token': sessionToken,
+          }
+        : undefined,
     });
     if (!response.ok) {
       return null;
