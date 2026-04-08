@@ -64,7 +64,23 @@ export function PortalShell({ title, subtitle, children }: PortalShellProps) {
     (item) => roleWeight[role] >= roleWeight[item.minRole],
   );
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    const sessionToken = readCookie("ai_sevak_session");
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3002";
+
+    if (sessionToken) {
+      try {
+        await fetch(`${apiBaseUrl}/v1/auth/logout`, {
+          method: "POST",
+          headers: {
+            "x-session-token": sessionToken,
+          },
+        });
+      } catch {
+        // no-op: local session clear still proceeds
+      }
+    }
+
     document.cookie = "ai_sevak_session=; path=/; max-age=0; samesite=lax";
     document.cookie = "ai_sevak_role=; path=/; max-age=0; samesite=lax";
     document.cookie = "ai_sevak_user=; path=/; max-age=0; samesite=lax";

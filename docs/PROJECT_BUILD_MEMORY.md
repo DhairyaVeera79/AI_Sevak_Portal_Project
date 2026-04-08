@@ -65,6 +65,7 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 - [x] Add auth module (V1 local credentials model)
 - [x] Add backend RBAC endpoint enforcement scaffolding
 - [x] Add RBAC and audit-event module (core scaffolding)
+- [x] Add persistent session revocation/logout endpoint
 
 ### E. Data and Integrations
 - [ ] Add DB migrations and seed data
@@ -311,6 +312,35 @@ Reference used: LangGraph memory overview concepts (short-term vs long-term; sem
 - `npm run test --workspace api -- --runInBand` ✅
 - `npm run test:e2e --workspace api` ✅
 
+## 2026-04-07 — Logout Revocation + Domain RBAC Pattern
+
+### What was implemented
+- Added session logout endpoint in API:
+  - `POST /v1/auth/logout`
+  - Revokes persisted session (`revokedAt`) when DB-backed session exists.
+  - Falls back gracefully in mock-only mode.
+- Added RBAC-protected domain moderation endpoint pattern:
+  - `GET /v1/admin/moderation-queue`
+  - Requires `C2` or above role.
+  - Returns moderation-ready stories from current datasource.
+- Updated portal sign-out flow to call API logout before local cookie clear.
+
+### Files touched
+- `services/api/src/app.service.ts`
+- `services/api/src/app.controller.ts`
+- `apps/portal-web/src/components/portal-shell.tsx`
+
+### Why it was implemented this way
+- Ensures logout can invalidate server-tracked sessions when DB is active.
+- Establishes reusable RBAC pattern for upcoming domain modules (expenses/log moderation/admin actions).
+- Keeps user-facing behavior consistent regardless of DB availability.
+
+### Validation done
+- `npm run lint` ✅
+- `npm run build` ✅
+- `npm run test --workspace api -- --runInBand` ✅
+- `npm run test:e2e --workspace api` ✅
+
 ## 6) Architecture Snapshot (Current)
 
 ### Frontend
@@ -357,7 +387,7 @@ From repo root:
 
 ## 9) AI Handoff Block (Copy into any new chat)
 
-Use this repo as a monorepo with active modules in `apps/presentation-site`, `apps/portal-web`, and `services/api`. Current state: backend RBAC checks are enforced on key endpoints, DB-backed session strategy is scaffolded via Prisma `Session`, audit logging is scaffolded via Prisma `AuditEvent`, and portal requests send session headers to API. Mock mode still works by default when `DATABASE_URL` is absent. Next priority is adding domain-level RBAC on new modules (expenses/log moderation/admin), plus deploy pipelines (Vercel + API host) and a persistent session revocation/logout endpoint. Do not change timeline anchors: 31 Aug 2026 build deadline and 26 Sep 2026 offering milestone. Preserve SRMD/SRLC terminology and impact-storytelling requirements.
+Use this repo as a monorepo with active modules in `apps/presentation-site`, `apps/portal-web`, and `services/api`. Current state: backend RBAC checks are enforced on key endpoints, DB-backed session strategy is scaffolded via Prisma `Session`, logout revocation endpoint is active, audit logging is scaffolded via Prisma `AuditEvent`, and portal requests send session headers to API. Mock mode still works by default when `DATABASE_URL` is absent. Next priority is expanding domain modules (expenses/log moderation/admin actions) with DB-backed repositories and RBAC, then deploy pipelines (Vercel + API host). Do not change timeline anchors: 31 Aug 2026 build deadline and 26 Sep 2026 offering milestone. Preserve SRMD/SRLC terminology and impact-storytelling requirements.
 
 ## 10) Update Protocol (Mandatory for Every Work Session)
 
@@ -407,6 +437,8 @@ This file must be updated in the same PR/commit as code changes.
 - Prisma module/service: `services/api/src/prisma/*`
 - Portal session middleware: `apps/portal-web/src/middleware.ts`
 - Admin audit endpoint: `GET /v1/admin/audit-events`
+- Logout endpoint: `POST /v1/auth/logout`
+- Moderation queue endpoint: `GET /v1/admin/moderation-queue`
 
 ### External Context Links
 - SRLC website: https://srlcusa.org/

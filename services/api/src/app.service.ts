@@ -79,6 +79,13 @@ export class AppService {
     return this.dataSource.getImpactStories();
   }
 
+  getModerationQueue() {
+    const stories = this.dataSource.getImpactStories();
+    return stories.filter(
+      (story) => story.stage === 'moderation' || story.stage === 'draft',
+    );
+  }
+
   async login(giId: string, password: string) {
     const normalizedGiId = giId.trim().toUpperCase();
     const role = this.deriveRoleFromGiId(normalizedGiId);
@@ -160,9 +167,11 @@ export class AppService {
     }
 
     try {
-      const decoded = JSON.parse(
-        Buffer.from(sessionToken, 'base64url').toString('utf-8'),
-      ) as SessionPayload;
+      const decoded = this.parseSessionToken(sessionToken);
+
+      if (!decoded) {
+        return null;
+      }
 
       if (!decoded.giId || !decoded.role) {
         return null;
@@ -196,6 +205,41 @@ export class AppService {
     } catch {
       return null;
     }
+  }
+
+  async logout(sessionToken: string | undefined) {
+    const decoded = this.parseSessionToken(sessionToken);
+
+    if (!decoded) {
+      return { loggedOut: false, reason: 'invalid_or_missing_session' };
+    }
+
+    if (decoded.sid && this.hasDatabaseConnection()) {
+      try {
+        await this.prismaService!.session.updateMany({
+          where: {
+            sessionTokenId: decoded.sid,
+            revokedAt: null,
+          },
+          data: {
+            revokedAt: new Date(),
+          },
+        });
+      } catch {
+        return { loggedOut: false, reason: 'revoke_failed' };
+      }
+    }
+
+    await this.createAuditEventIfPossible({
+      actorGiId: decoded.giId,
+      action: 'auth.logout',
+      status: 'success',
+      metadataJson: {
+        sid: decoded.sid,
+      },
+    });
+
+    return { loggedOut: true };
   }
 
   async requireRole(sessionToken: string | undefined, minRole: UserRole) {
@@ -323,6 +367,22 @@ export class AppService {
 
   private hasDatabaseConnection() {
     return Boolean(process.env.DATABASE_URL && this.prismaService);
+  }
+
+  private parseSessionToken(
+    sessionToken: string | undefined,
+  ): SessionPayload | null {
+    if (!sessionToken) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(
+        Buffer.from(sessionToken, 'base64url').toString('utf-8'),
+      ) as SessionPayload;
+    } catch {
+      return null;
+    }
   }
 
   private deriveRoleFromGiId(giId: string): UserRole {

@@ -74,6 +74,15 @@ export class AppController {
     return user;
   }
 
+  @Post('v1/auth/logout')
+  async logout(@Headers('x-session-token') sessionToken: string | undefined) {
+    const result = await this.appService.logout(sessionToken);
+    if (!result.loggedOut) {
+      throw new UnauthorizedException('No active session to logout');
+    }
+    return result;
+  }
+
   @Get('v1/admin/rbac-status')
   async getRbacStatus(
     @Headers('x-session-token') sessionToken: string | undefined,
@@ -95,5 +104,13 @@ export class AppController {
     await this.appService.requireRole(sessionToken, 'ADMIN');
     const parsedLimit = limit ? Number(limit) : 20;
     return this.appService.getRecentAuditEvents(parsedLimit);
+  }
+
+  @Get('v1/admin/moderation-queue')
+  async getModerationQueue(
+    @Headers('x-session-token') sessionToken: string | undefined,
+  ) {
+    await this.appService.requireRole(sessionToken, 'C2');
+    return this.appService.getModerationQueue();
   }
 }
