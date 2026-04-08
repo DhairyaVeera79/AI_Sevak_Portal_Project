@@ -482,6 +482,7 @@ This file must be updated in the same PR/commit as code changes.
 - Main product doc: `docs/AI_Sevak_Portal.md`
 - Presentation narrative (source): `docs/AI_Sevak_Portal_Presentaion.md`
 - Build memory (this file): `docs/PROJECT_BUILD_MEMORY.md`
+- Fresh chat bootstrap prompt: `docs/NEXT_CHAT_HANDOFF_PROMPT.md`
 - Monorepo overview: `README.md`
 
 ### Source/Context References
@@ -532,4 +533,5 @@ This file must be updated in the same PR/commit as code changes.
 2. `docs/AI_Sevak_Portal.md` (scope and implementation intent)
 3. `docs/AI_Sevak_Portal_Presentaion.md` (narrative and roadmap)
 4. `README.md` (repo layout and run strategy)
-5. `references/*` (deeper source context)
+5. `docs/NEXT_CHAT_HANDOFF_PROMPT.md` (execution-ready restart prompt)
+6. `references/*` (deeper source context)
